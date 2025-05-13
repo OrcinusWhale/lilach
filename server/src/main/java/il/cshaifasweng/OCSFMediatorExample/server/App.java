@@ -1,18 +1,62 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Arrays;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.service.ServiceRegistry;
+import java.time.LocalDateTime;
+import java.util.Scanner;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
-	
-	private static SimpleServer server;
-    public static void main( String[] args ) throws IOException
-    {
-        server = new SimpleServer(3000);
-        server.listen();
+public class App {
+
+  private static SimpleServer server;
+  public static Session session;
+
+  public static SessionFactory getSessionFactory() throws HibernateException {
+    Configuration configuration = new Configuration();
+    configuration.addAnnotatedClass(Item.class);
+    ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+        .applySettings(configuration.getProperties())
+        .build();
+    return configuration.buildSessionFactory(serviceRegistry);
+  }
+
+  private static void generateDb() throws Exception {
+    List<String> itemNames = Arrays.asList("Floral Embrace", "Lovely Lavender Medley", "Mother’s Embrace",
+        "Vibrant Floral Medley", "Precious Peony Bouquet");
+    for (String name : itemNames) {
+      Item item = new Item(name, "Bouquet", 1000);
+      session.save(item);
     }
+    session.flush();
+  }
+
+  public static void main(String[] args) throws IOException {
+    try {
+      SessionFactory sessionFactory = getSessionFactory();
+      session = sessionFactory.openSession();
+      session.beginTransaction();
+      generateDb();
+      session.getTransaction().commit();
+    } catch (Exception exception) {
+      if (session != null) {
+        session.getTransaction().rollback();
+      }
+      System.err.println("Whoops, rollback");
+      exception.printStackTrace();
+    } finally {
+      session.close();
+    }
+    server = new SimpleServer(3000);
+    server.listen();
+  }
 }
