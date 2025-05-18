@@ -53,8 +53,6 @@ public class App {
       }
       System.err.println("Whoops, rollback");
       exception.printStackTrace();
-    } finally {
-      session.close();
     }
     server = new SimpleServer(3000);
     server.listen();
