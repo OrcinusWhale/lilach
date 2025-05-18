@@ -31,7 +31,6 @@ public class SimpleServer extends AbstractServer {
     String msgString = msg.toString();
     System.out.println(msgString);
     if (msgString.equals("catalogue")) {
-      System.out.println("hello");
       CriteriaBuilder builder = App.session.getCriteriaBuilder();
       CriteriaQuery<Item> query = builder.createQuery(Item.class);
       query.from(Item.class);
