@@ -16,6 +16,8 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
+import java.util.HashMap;
+
 public class SimpleServer extends AbstractServer {
   private static ArrayList<SubscribedClient> SubscribersList = new ArrayList<>();
 
@@ -27,55 +29,46 @@ public class SimpleServer extends AbstractServer {
   @Override
   protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
     String msgString = msg.toString();
-    Session session = null;
-    try {
-      SessionFactory sessionFactory = App.getSessionFactory();
-      session = sessionFactory.openSession();
-      if (msgString.equals("catalogue")) {
-        try {
-          CriteriaBuilder builder = App.session.getCriteriaBuilder();
-          CriteriaQuery<Item> query = builder.createQuery(Item.class);
-          query.from(Item.class);
-          List<Item> items = App.session.createQuery(query).getResultList();
-          client.sendToClient(items);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      } else if (msgString.startsWith("get")) {
-        try {
-          Item item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1]));
-          client.sendToClient(item);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      } else if (msgString.startsWith("update price")) {
-        try {
-          String[] splitMsg = msgString.split(" ");
-          Item item = App.session.get(Item.class, Integer.parseInt(splitMsg[2]));
-          session.beginTransaction();
-          item.setPrice(Integer.parseInt(splitMsg[3]));
-          session.update(item);
-          session.flush();
-          session.getTransaction().commit();
-          client.sendToClient(item);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+    System.out.println(msgString);
+    if (msgString.equals("catalogue")) {
+      System.out.println("hello");
+      CriteriaBuilder builder = App.session.getCriteriaBuilder();
+      CriteriaQuery<Item> query = builder.createQuery(Item.class);
+      query.from(Item.class);
+      List<Item> items = App.session.createQuery(query).getResultList();
+      List<HashMap<String, String>> response = new ArrayList<>();
+      for (Item item : items) {
+        response.add(item.toHashMap());
       }
-    } catch (HibernateException e) {
-      if (session != null) {
-        session.getTransaction().rollback();
-      }
-      System.err.println("Whoops, rollback");
-      e.printStackTrace();
       try {
-        client.sendToClient("fail");
-      } catch (IOException exception) {
-        exception.printStackTrace();
+        client.sendToClient(response);
+      } catch (IOException e) {
+        e.printStackTrace();
       }
-    } finally {
-      if (session != null) {
-        session.close();
+    } else if (msgString.startsWith("get")) {
+      HashMap<String, String> item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1])).toHashMap();
+      try {
+        client.sendToClient(item);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    } else if (msgString.startsWith("update price")) {
+      String[] splitMsg = msgString.split(" ");
+      Item item = App.session.get(Item.class, Integer.parseInt(splitMsg[2]));
+      try {
+        App.session.beginTransaction();
+        item.setPrice(Integer.parseInt(splitMsg[3]));
+        App.session.update(item);
+        App.session.flush();
+        App.session.getTransaction().commit();
+        try {
+          client.sendToClient(item.toHashMap());
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      } catch (HibernateException exception) {
+        App.session.getTransaction().rollback();
+        exception.printStackTrace();
       }
     }
   }
@@ -89,5 +82,4 @@ public class SimpleServer extends AbstractServer {
       e1.printStackTrace();
     }
   }
-
 }
