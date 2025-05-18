@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
+import java.util.Scanner;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
@@ -21,8 +22,9 @@ public class App {
   private static SimpleServer server;
   public static Session session;
 
-  public static SessionFactory getSessionFactory() throws HibernateException {
+  public static SessionFactory getSessionFactory(String pass) throws HibernateException {
     Configuration configuration = new Configuration();
+    configuration.setProperty("hibernate.connection.password", pass);
     configuration.addAnnotatedClass(Item.class);
     ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
         .applySettings(configuration.getProperties())
@@ -41,12 +43,20 @@ public class App {
   }
 
   public static void main(String[] args) throws IOException {
+    Scanner scanner = new Scanner(System.in);
+    System.out.println("Database password:");
+    String pass = scanner.nextLine().trim();
     try {
-      SessionFactory sessionFactory = getSessionFactory();
+      SessionFactory sessionFactory = getSessionFactory(pass);
       session = sessionFactory.openSession();
-      session.beginTransaction();
-      generateDb();
-      session.getTransaction().commit();
+      CriteriaBuilder builder = App.session.getCriteriaBuilder();
+      CriteriaQuery<Item> query = builder.createQuery(Item.class);
+      query.from(Item.class);
+      if (App.session.createQuery(query).getResultList().isEmpty()) {
+        session.beginTransaction();
+        generateDb();
+        session.getTransaction().commit();
+      }
     } catch (Exception exception) {
       if (session != null) {
         session.getTransaction().rollback();

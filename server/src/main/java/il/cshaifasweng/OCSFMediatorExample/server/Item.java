@@ -19,6 +19,10 @@ public class Item {
     this.price = price;
   }
 
+  public Item() {
+
+  }
+
   public void setPrice(int price) {
     this.price = price;
   }
