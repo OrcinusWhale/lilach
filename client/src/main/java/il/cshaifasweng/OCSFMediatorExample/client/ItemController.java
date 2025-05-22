@@ -24,6 +24,8 @@ public class ItemController {
   void loadItem(MouseEvent event) {
     try {
       App.setRoot("itemPage");
+      ItemPageController controller = App.getFxmlLoader().getController();
+      controller.setItemId(itemId);
       SimpleClient.getClient().sendToServer("get " + itemId);
     } catch (IOException e) {
       e.printStackTrace();
@@ -44,5 +46,9 @@ public class ItemController {
 
   public void setType(String type) {
     typeLabel.setText(type);
+  }
+
+  public String getItemId() {
+    return itemId;
   }
 }

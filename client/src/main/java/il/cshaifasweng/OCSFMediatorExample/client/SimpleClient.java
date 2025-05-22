@@ -25,8 +25,15 @@ public class SimpleClient extends AbstractClient {
       controller.displayItems(items);
     } else if (msg instanceof HashMap) {
       HashMap<String, String> item = (HashMap<String, String>) msg;
-      ItemPageController controller = (ItemPageController) App.getFxmlLoader().getController();
-      controller.displayItem(item);
+      if (App.getDisplayed().equals("catalogue")) {
+        CatalogueController controller = (CatalogueController) App.getFxmlLoader().getController();
+        controller.updateItem(item);
+      } else {
+        ItemPageController controller = App.getFxmlLoader().getController();
+        if (controller.getItemId().equals(item.get("itemId"))) {
+          controller.displayItem(item);
+        }
+      }
     }
   }
 

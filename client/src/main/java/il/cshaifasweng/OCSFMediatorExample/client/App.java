@@ -22,6 +22,7 @@ public class App extends Application {
   private static FXMLLoader fxmlLoader;
   private static Scene scene;
   private static SimpleClient client;
+  private static String displayed;
 
   @Override
   public void start(Stage stage) throws IOException {
@@ -35,10 +36,12 @@ public class App extends Application {
     client = SimpleClient.getClient();
     client.openConnection();
     setRoot("catalogue");
+    client.sendToServer("add");
     client.sendToServer("catalogue");
   }
 
   static void setRoot(String fxml) throws IOException {
+    displayed = fxml;
     scene.setRoot(loadFXML(fxml));
   }
 
@@ -50,6 +53,7 @@ public class App extends Application {
   @Override
   public void stop() throws Exception {
     EventBus.getDefault().unregister(this);
+    client.sendToServer("remove");
     client.closeConnection();
     super.stop();
   }
@@ -68,6 +72,10 @@ public class App extends Application {
 
   public static FXMLLoader getFxmlLoader() {
     return fxmlLoader;
+  }
+
+  public static String getDisplayed() {
+    return displayed;
   }
 
   public static void main(String[] args) {

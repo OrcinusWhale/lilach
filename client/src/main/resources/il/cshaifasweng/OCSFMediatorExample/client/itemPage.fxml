@@ -6,7 +6,6 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ItemPageController">
    <children>
       <Label fx:id="nameLabel" alignment="CENTER" layoutY="58.0" prefWidth="720.0" text="Loading..." textAlignment="CENTER" wrapText="true">
@@ -14,18 +13,18 @@
             <Font size="32.0" />
          </font>
       </Label>
-      <Label fx:id="idLabel" layoutX="14.0" layoutY="132.0" text="Item ID: " visible="false">
+      <Label fx:id="idLabel" layoutX="14.0" layoutY="132.0" visible="false">
          <font>
             <Font size="20.0" />
          </font>
       </Label>
       <Button fx:id="backBtn" disable="true" layoutX="546.0" layoutY="32.0" mnemonicParsing="false" onAction="#backToCatalogue" text="Back to catalogue" />
-      <Label fx:id="typeLabel" layoutX="14.0" layoutY="175.0" text="Item type: " visible="false">
+      <Label fx:id="typeLabel" layoutX="14.0" layoutY="175.0" visible="false">
          <font>
             <Font size="20.0" />
          </font>
       </Label>
-      <Label fx:id="priceLabel" layoutX="14.0" layoutY="216.0" text="Price: " visible="false">
+      <Label fx:id="priceLabel" layoutX="14.0" layoutY="216.0" visible="false">
          <font>
             <Font size="20.0" />
          </font>

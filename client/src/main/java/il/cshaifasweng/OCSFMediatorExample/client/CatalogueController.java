@@ -9,6 +9,7 @@ import javafx.scene.Parent;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class CatalogueController {
@@ -18,6 +19,8 @@ public class CatalogueController {
 
   @FXML
   private Label loadingLabel;
+
+  private ArrayList<ItemController> itemControllers = new ArrayList<>();
 
   public void displayItems(List<HashMap<String, String>> items) {
     Platform.runLater(() -> {
@@ -36,7 +39,19 @@ public class CatalogueController {
         controller.setType(item.get("type"));
         controller.setPrice(item.get("price"));
         cataloguePane.getChildren().add(itemEntry);
+        itemControllers.add(controller);
       }
     });
+  }
+
+  public void updateItem(HashMap<String, String> item) {
+    for (ItemController controller : itemControllers) {
+      if (controller.getItemId().equals(item.get("itemId"))) {
+        Platform.runLater(() -> {
+          controller.setPrice(item.get("price"));
+        });
+        break;
+      }
+    }
   }
 }

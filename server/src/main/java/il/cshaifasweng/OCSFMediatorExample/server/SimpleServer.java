@@ -60,19 +60,19 @@ public class SimpleServer extends AbstractServer {
         App.session.update(item);
         App.session.flush();
         App.session.getTransaction().commit();
-        try {
-          client.sendToClient(item.toHashMap());
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+        sendToAllClients(item.toHashMap());
       } catch (HibernateException exception) {
         App.session.getTransaction().rollback();
         exception.printStackTrace();
       }
+    } else if (msgString.equals("add")) {
+      SubscribersList.add(new SubscribedClient(client));
+    } else if (msgString.equals("remove")) {
+      SubscribersList.removeIf(subscribedClient -> subscribedClient.getClient().equals(client));
     }
   }
 
-  public void sendToAllClients(String message) {
+  public void sendToAllClients(Object message) {
     try {
       for (SubscribedClient subscribedClient : SubscribersList) {
         subscribedClient.getClient().sendToClient(message);
