@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ConnectController">
+   <children>
+      <Label layoutX="315.0" layoutY="243.0" text="Lilach">
+         <font>
+            <Font size="36.0" />
+         </font>
+      </Label>
+      <TextField fx:id="ipTF" layoutX="285.0" layoutY="334.0" promptText="IP (default: localhost)" />
+      <Button layoutX="330.0" layoutY="383.0" mnemonicParsing="false" onAction="#connect" text="Connect" />
+   </children>
+</AnchorPane>

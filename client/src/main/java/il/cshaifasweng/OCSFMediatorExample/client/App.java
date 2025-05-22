@@ -21,16 +21,20 @@ public class App extends Application {
 
   private static FXMLLoader fxmlLoader;
   private static Scene scene;
-  private SimpleClient client;
+  private static SimpleClient client;
 
   @Override
   public void start(Stage stage) throws IOException {
     EventBus.getDefault().register(this);
-    client = SimpleClient.getClient();
-    client.openConnection();
-    scene = new Scene(loadFXML("catalogue"), 720, 720);
+    scene = new Scene(loadFXML("connect"), 720, 720);
     stage.setScene(scene);
     stage.show();
+  }
+
+  public static void connect() throws IOException {
+    client = SimpleClient.getClient();
+    client.openConnection();
+    setRoot("catalogue");
     client.sendToServer("catalogue");
   }
 

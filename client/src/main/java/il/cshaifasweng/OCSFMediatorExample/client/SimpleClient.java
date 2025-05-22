@@ -11,6 +11,7 @@ import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
 public class SimpleClient extends AbstractClient {
 
   private static SimpleClient client = null;
+  private static String host = "localhost";
 
   private SimpleClient(String host, int port) {
     super(host, port);
@@ -31,9 +32,12 @@ public class SimpleClient extends AbstractClient {
 
   public static SimpleClient getClient() {
     if (client == null) {
-      client = new SimpleClient("localhost", 3000);
+      client = new SimpleClient(host, 3000);
     }
     return client;
   }
 
+  public static void setHostIp(String host) {
+    SimpleClient.host = host;
+  }
 }
