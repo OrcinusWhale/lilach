@@ -21,19 +21,10 @@ public class SimpleClient extends AbstractClient {
   protected void handleMessageFromServer(Object msg) {
     if (msg instanceof List) {
       List<HashMap<String, String>> items = (List<HashMap<String, String>>) msg;
-      CatalogueController controller = (CatalogueController) App.getFxmlLoader().getController();
-      controller.displayItems(items);
+      EventBus.getDefault().post(new CatalogueEvent(items));
     } else if (msg instanceof HashMap) {
       HashMap<String, String> item = (HashMap<String, String>) msg;
-      if (App.getDisplayed().equals("catalogue")) {
-        CatalogueController controller = (CatalogueController) App.getFxmlLoader().getController();
-        controller.updateItem(item);
-      } else {
-        ItemPageController controller = App.getFxmlLoader().getController();
-        if (controller.getItemId().equals(item.get("itemId"))) {
-          controller.displayItem(item);
-        }
-      }
+      EventBus.getDefault().post(new ItemEvent(item));
     }
   }
 

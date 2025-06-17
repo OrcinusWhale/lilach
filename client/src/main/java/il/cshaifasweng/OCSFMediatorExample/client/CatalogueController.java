@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
 public class CatalogueController {
 
   @FXML // fx:id="cataloguePane"
@@ -20,9 +23,9 @@ public class CatalogueController {
   @FXML
   private Label loadingLabel;
 
-  private ArrayList<ItemController> itemControllers = new ArrayList<>();
-
-  public void displayItems(List<HashMap<String, String>> items) {
+  @Subscribe
+  public void displayItems(CatalogueEvent event) {
+    List<HashMap<String, String>> items = event.getItems();
     Platform.runLater(() -> {
       cataloguePane.getChildren().remove(loadingLabel);
       for (HashMap<String, String> item : items) {
@@ -34,24 +37,19 @@ public class CatalogueController {
           e.printStackTrace();
         }
         ItemController controller = (ItemController) fxmlLoader.getController();
-        controller.setItemId(item.get("itemId"));
-        controller.setName(item.get("name"));
-        controller.setType(item.get("type"));
-        controller.setPrice(item.get("price"));
+        controller.setItem(item);
         cataloguePane.getChildren().add(itemEntry);
-        itemControllers.add(controller);
       }
     });
   }
 
-  public void updateItem(HashMap<String, String> item) {
-    for (ItemController controller : itemControllers) {
-      if (controller.getItemId().equals(item.get("itemId"))) {
-        Platform.runLater(() -> {
-          controller.setPrice(item.get("price"));
-        });
-        break;
-      }
-    }
+  @Subscribe
+  public void unsubscribe(UnsubscribeEvent event) {
+    EventBus.getDefault().unregister(this);
+  }
+
+  @FXML
+  void initialize() {
+    EventBus.getDefault().register(this);
   }
 }
