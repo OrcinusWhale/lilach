@@ -10,6 +10,9 @@ import javafx.scene.control.TextField;
 import java.io.IOException;
 import java.util.HashMap;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
 public class ItemPageController {
 
   @FXML // fx:id="idLabel"
@@ -46,6 +49,7 @@ public class ItemPageController {
 
   @FXML
   void backToCatalogue(ActionEvent event) {
+    EventBus.getDefault().unregister(this);
     try {
       App.setRoot("catalogue");
       SimpleClient.getClient().sendToServer("catalogue");
@@ -96,19 +100,28 @@ public class ItemPageController {
     priceErrorLabel.setVisible(false);
   }
 
-  public void displayItem(HashMap<String, String> item) {
-    Platform.runLater(() -> {
-      idLabel.setText("Item ID: " + item.get("itemId"));
-      idLabel.setVisible(true);
-      nameLabel.setText(item.get("name"));
-      priceLabel.setText("Price: " + item.get("price"));
-      priceLabel.setVisible(true);
-      typeLabel.setText("Item type: " + item.get("type"));
-      typeLabel.setVisible(true);
-      backBtn.setDisable(false);
-      updateBtn.setDisable(false);
-      updateBtn.setVisible(true);
-    });
+  @Subscribe
+  public void displayItem(ItemEvent event) {
+    HashMap<String, String> item = event.getItem();
+    if (item.get("itemId").equals(itemId)) {
+      Platform.runLater(() -> {
+        idLabel.setText("Item ID: " + item.get("itemId"));
+        idLabel.setVisible(true);
+        nameLabel.setText(item.get("name"));
+        priceLabel.setText("Price: " + item.get("price"));
+        priceLabel.setVisible(true);
+        typeLabel.setText("Item type: " + item.get("type"));
+        typeLabel.setVisible(true);
+        backBtn.setDisable(false);
+        updateBtn.setDisable(false);
+        updateBtn.setVisible(true);
+      });
+    }
+  }
+
+  @FXML
+  void initialize() {
+    EventBus.getDefault().register(this);
   }
 
   public void setItemId(String itemId) {
