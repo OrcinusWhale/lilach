@@ -6,7 +6,7 @@ import java.util.HashMap;
 import org.greenrobot.eventbus.EventBus;
 
 import il.cshaifasweng.OCSFMediatorExample.client.ocsf.AbstractClient;
-import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
+import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 
 public class SimpleClient extends AbstractClient {
 
@@ -20,10 +20,10 @@ public class SimpleClient extends AbstractClient {
   @Override
   protected void handleMessageFromServer(Object msg) {
     if (msg instanceof List) {
-      List<HashMap<String, String>> items = (List<HashMap<String, String>>) msg;
+      List<Item> items = (List<Item>) msg;
       EventBus.getDefault().post(new CatalogueEvent(items));
-    } else if (msg instanceof HashMap) {
-      HashMap<String, String> item = (HashMap<String, String>) msg;
+    } else if (msg instanceof Item) {
+      Item item = (Item) msg;
       EventBus.getDefault().post(new ItemEvent(item));
     }
   }

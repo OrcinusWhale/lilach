@@ -3,8 +3,6 @@ package il.cshaifasweng.OCSFMediatorExample.server;
 import java.util.Scanner;
 import java.io.IOException;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.Arrays;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -14,8 +12,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
-import java.time.LocalDateTime;
-import java.util.Scanner;
+import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 
 public class App {
 

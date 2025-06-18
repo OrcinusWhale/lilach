@@ -15,6 +15,8 @@ import java.util.HashMap;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.Item;
+
 public class CatalogueController {
 
   @FXML // fx:id="cataloguePane"
@@ -25,10 +27,10 @@ public class CatalogueController {
 
   @Subscribe
   public void displayItems(CatalogueEvent event) {
-    List<HashMap<String, String>> items = event.getItems();
+    List<Item> items = event.getItems();
     Platform.runLater(() -> {
       cataloguePane.getChildren().remove(loadingLabel);
-      for (HashMap<String, String> item : items) {
+      for (Item item : items) {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("item" + ".fxml"));
         Parent itemEntry = null;
         try {

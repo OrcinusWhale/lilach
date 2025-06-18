@@ -1,16 +1,16 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import java.util.HashMap;
 import java.util.List;
+import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 
 public class CatalogueEvent {
-  private List<HashMap<String, String>> items;
+  private List<Item> items;
 
-  public CatalogueEvent(List<HashMap<String, String>> items) {
+  public CatalogueEvent(List<Item> items) {
     this.items = items;
   }
 
-  public List<HashMap<String, String>> getItems() {
+  public List<Item> getItems() {
     return items;
   }
 }

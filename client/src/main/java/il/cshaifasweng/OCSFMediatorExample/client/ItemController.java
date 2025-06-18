@@ -13,6 +13,8 @@ import java.util.HashMap;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.Item;
+
 public class ItemController {
   private String itemId;
 
@@ -54,19 +56,19 @@ public class ItemController {
     typeLabel.setText(type);
   }
 
-  public void setItem(HashMap<String, String> item) {
-    itemId = item.get("itemId");
-    nameLabel.setText(item.get("name"));
-    priceLabel.setText(item.get("price"));
-    typeLabel.setText(item.get("type"));
+  public void setItem(Item item) {
+    itemId = Integer.toString(item.getItemId());
+    nameLabel.setText(item.getName());
+    priceLabel.setText(item.getPrice() + "$");
+    typeLabel.setText(item.getType());
   }
 
   @Subscribe
   public void updatePrice(ItemEvent event) {
-    HashMap<String, String> item = event.getItem();
-    if (item.get("itemId").equals(itemId)) {
+    Item item = event.getItem();
+    if (Integer.toString(item.getItemId()).equals(itemId)) {
       Platform.runLater(() -> {
-        priceLabel.setText(item.get("price"));
+        priceLabel.setText(item.getPrice() + "$");
       });
     }
   }

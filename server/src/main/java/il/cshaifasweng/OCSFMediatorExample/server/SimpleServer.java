@@ -7,23 +7,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
+import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.SubscribedClient;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
 import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-
-import java.util.HashMap;
 
 public class SimpleServer extends AbstractServer {
   private static ArrayList<SubscribedClient> SubscribersList = new ArrayList<>();
 
   public SimpleServer(int port) {
     super(port);
-
   }
 
   @Override
@@ -35,17 +30,13 @@ public class SimpleServer extends AbstractServer {
       CriteriaQuery<Item> query = builder.createQuery(Item.class);
       query.from(Item.class);
       List<Item> items = App.session.createQuery(query).getResultList();
-      List<HashMap<String, String>> response = new ArrayList<>();
-      for (Item item : items) {
-        response.add(item.toHashMap());
-      }
       try {
-        client.sendToClient(response);
+        client.sendToClient(items);
       } catch (IOException e) {
         e.printStackTrace();
       }
     } else if (msgString.startsWith("get")) {
-      HashMap<String, String> item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1])).toHashMap();
+      Item item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1]));
       try {
         client.sendToClient(item);
       } catch (IOException e) {
@@ -60,7 +51,7 @@ public class SimpleServer extends AbstractServer {
         App.session.update(item);
         App.session.flush();
         App.session.getTransaction().commit();
-        sendToAllClients(item.toHashMap());
+        sendToAllClients(item);
       } catch (HibernateException exception) {
         App.session.getTransaction().rollback();
         exception.printStackTrace();

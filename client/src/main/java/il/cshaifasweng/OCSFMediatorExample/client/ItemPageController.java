@@ -8,10 +8,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+
+import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 
 public class ItemPageController {
 
@@ -102,15 +103,16 @@ public class ItemPageController {
 
   @Subscribe
   public void displayItem(ItemEvent event) {
-    HashMap<String, String> item = event.getItem();
-    if (item.get("itemId").equals(itemId)) {
+    Item item = event.getItem();
+    String id = Integer.toString(item.getItemId());
+    if (id.equals(itemId)) {
       Platform.runLater(() -> {
-        idLabel.setText("Item ID: " + item.get("itemId"));
+        idLabel.setText("Item ID: " + id);
         idLabel.setVisible(true);
-        nameLabel.setText(item.get("name"));
-        priceLabel.setText("Price: " + item.get("price"));
+        nameLabel.setText(item.getName());
+        priceLabel.setText("Price: " + item.getPrice() + "$");
         priceLabel.setVisible(true);
-        typeLabel.setText("Item type: " + item.get("type"));
+        typeLabel.setText("Item type: " + item.getType());
         typeLabel.setVisible(true);
         backBtn.setDisable(false);
         updateBtn.setDisable(false);

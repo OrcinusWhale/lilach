@@ -1,15 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import java.util.HashMap;
+import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 
 public class ItemEvent {
-  private HashMap<String, String> item;
+  private Item item;
 
-  public ItemEvent(HashMap<String, String> item) {
+  public ItemEvent(Item item) {
     this.item = item;
   }
 
-  public HashMap<String, String> getItem() {
+  public Item getItem() {
     return item;
   }
 }
