@@ -2,13 +2,12 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.Scene;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -17,6 +16,9 @@ import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 
 public class ItemController {
   private String itemId;
+
+  @FXML
+  private ImageView imageView;
 
   @FXML // fx:id="nameLabel"
   private Label nameLabel; // Value injected by FXMLLoader
@@ -61,6 +63,9 @@ public class ItemController {
     nameLabel.setText(item.getName());
     priceLabel.setText(item.getPrice() + "$");
     typeLabel.setText(item.getType());
+    if (item.getImage() != null) {
+      imageView.setImage(new Image(item.getImage(), 100, 100, true, true));
+    }
   }
 
   @Subscribe

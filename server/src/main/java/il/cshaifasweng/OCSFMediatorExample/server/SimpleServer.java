@@ -30,6 +30,9 @@ public class SimpleServer extends AbstractServer {
       CriteriaQuery<Item> query = builder.createQuery(Item.class);
       query.from(Item.class);
       List<Item> items = App.session.createQuery(query).getResultList();
+      for (Item item : items) {
+        item.loadImage();
+      }
       try {
         client.sendToClient(items);
       } catch (IOException e) {
@@ -37,6 +40,7 @@ public class SimpleServer extends AbstractServer {
       }
     } else if (msgString.startsWith("get")) {
       Item item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1]));
+      item.loadImage();
       try {
         client.sendToClient(item);
       } catch (IOException e) {

@@ -9,8 +9,6 @@ import javafx.scene.Parent;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;

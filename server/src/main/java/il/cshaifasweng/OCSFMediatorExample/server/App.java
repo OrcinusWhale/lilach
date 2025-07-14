@@ -30,10 +30,10 @@ public class App {
   }
 
   private static void generateDb() throws Exception {
-    List<String> itemNames = Arrays.asList("Floral Embrace", "Lovely Lavender Medley", "Mother’s Embrace",
-        "Vibrant Floral Medley", "Precious Peony Bouquet");
+    List<String> itemNames = Arrays.asList("Orange Blossom", "White celebration", "Spring Celebration",
+        "Sunflower Bouquet", "Lovely Bouquet");
     for (String name : itemNames) {
-      Item item = new Item(name, "Bouquet", 1000);
+      Item item = new Item(name, "Bouquet", 1000, name + ".jpg");
       session.save(item);
     }
     session.flush();

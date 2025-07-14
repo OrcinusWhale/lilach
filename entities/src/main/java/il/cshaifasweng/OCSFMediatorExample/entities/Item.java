@@ -2,7 +2,7 @@ package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.*;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.HashMap;
 
 @Entity
@@ -16,6 +16,9 @@ public class Item implements Serializable {
   private String name;
   private String type;
   private int price;
+  private String imageFileName;
+  @Transient
+  private byte[] image;
 
   public Item(String name, String type, int price) {
     this.name = name;
@@ -23,8 +26,14 @@ public class Item implements Serializable {
     this.price = price;
   }
 
-  public Item() {
+  public Item(String name, String type, int price, String imageFileName) {
+    this.name = name;
+    this.type = type;
+    this.price = price;
+    this.imageFileName = imageFileName;
+  }
 
+  public Item() {
   }
 
   public void setPrice(int price) {
@@ -45,6 +54,21 @@ public class Item implements Serializable {
 
   public int getPrice() {
     return price;
+  }
+
+  public ByteArrayInputStream getImage() {
+    return new ByteArrayInputStream(image);
+  }
+
+  public void loadImage() {
+    File imageFile = new File("images", imageFileName);
+    image = new byte[(int) imageFile.length()];
+    try {
+      FileInputStream inputStream = new FileInputStream(imageFile);
+      inputStream.read(image);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public HashMap<String, String> toHashMap() {
