@@ -3,77 +3,95 @@ package il.cshaifasweng.OCSFMediatorExample.server;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.SubscribedClient;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
 import org.hibernate.HibernateException;
 
 public class SimpleServer extends AbstractServer {
-  private static ArrayList<SubscribedClient> SubscribersList = new ArrayList<>();
+    private static final ArrayList<SubscribedClient> SubscribersList = new ArrayList<>();
 
-  public SimpleServer(int port) {
-    super(port);
-  }
-
-  @Override
-  protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-    String msgString = msg.toString();
-    System.out.println(msgString);
-    if (msgString.equals("catalogue")) {
-      CriteriaBuilder builder = App.session.getCriteriaBuilder();
-      CriteriaQuery<Item> query = builder.createQuery(Item.class);
-      query.from(Item.class);
-      List<Item> items = App.session.createQuery(query).getResultList();
-      for (Item item : items) {
-        item.loadImage();
-      }
-      try {
-        client.sendToClient(items);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    } else if (msgString.startsWith("get")) {
-      Item item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1]));
-      item.loadImage();
-      try {
-        client.sendToClient(item);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    } else if (msgString.startsWith("update price")) {
-      String[] splitMsg = msgString.split(" ");
-      Item item = App.session.get(Item.class, Integer.parseInt(splitMsg[2]));
-      try {
-        App.session.beginTransaction();
-        item.setPrice(Integer.parseInt(splitMsg[3]));
-        App.session.update(item);
-        App.session.flush();
-        App.session.getTransaction().commit();
-        sendToAllClients(item);
-      } catch (HibernateException exception) {
-        App.session.getTransaction().rollback();
-        exception.printStackTrace();
-      }
-    } else if (msgString.equals("add")) {
-      SubscribersList.add(new SubscribedClient(client));
-    } else if (msgString.equals("remove")) {
-      SubscribersList.removeIf(subscribedClient -> subscribedClient.getClient().equals(client));
+    public SimpleServer(int port) {
+        super(port);
     }
-  }
 
-  public void sendToAllClients(Object message) {
-    try {
-      for (SubscribedClient subscribedClient : SubscribersList) {
-        subscribedClient.getClient().sendToClient(message);
-      }
-    } catch (IOException e1) {
-      e1.printStackTrace();
+    @Override
+    protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
+        if (msg instanceof String) {
+            String msgString = (String) msg;
+            System.out.println(msg);
+            if (msgString.equals("catalogue")) {
+                CriteriaBuilder builder = App.session.getCriteriaBuilder();
+                CriteriaQuery<Item> query = builder.createQuery(Item.class);
+                query.from(Item.class);
+                List<Item> items = App.session.createQuery(query).getResultList();
+                for (Item item : items) {
+                    item.loadImage();
+                }
+                try {
+                    client.sendToClient(items);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else if (msgString.startsWith("get")) {
+                Item item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1]));
+                item.loadImage();
+                try {
+                    client.sendToClient(item);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else if (msgString.equals("add")) {
+                SubscribersList.add(new SubscribedClient(client));
+            } else if (msgString.equals("remove")) {
+                SubscribersList.removeIf(subscribedClient -> subscribedClient.getClient().equals(client));
+            }
+        } else if (msg instanceof Item) {
+            Item item = (Item) msg;
+            int id = item.getItemId();
+            byte[] image = item.getImage();
+            if (image != null && item.getImageFile() == null) {
+                try {
+                    File imageFile = File.createTempFile("image", ".tmp", new File("images"));
+                    new FileOutputStream(imageFile).write(image);
+                    item.setImageFile(imageFile);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            Item dbItem = App.session.get(Item.class, id);
+            dbItem.setName(item.getName());
+            dbItem.setImageFile(item.getImageFile());
+            dbItem.setType(item.getType());
+            dbItem.setPrice(item.getPrice());
+            try {
+                App.session.beginTransaction();
+                App.session.saveOrUpdate(dbItem);
+                App.session.flush();
+                App.session.getTransaction().commit();
+                sendToAllClients(item);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
-  }
+
+    public void sendToAllClients(Object message) {
+        try {
+            for (SubscribedClient subscribedClient : SubscribersList) {
+                subscribedClient.getClient().sendToClient(message);
+            }
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+    }
 }

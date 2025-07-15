@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
+import java.io.File;
 import java.util.Scanner;
 import java.io.IOException;
 import java.util.List;
@@ -33,7 +34,7 @@ public class App {
     List<String> itemNames = Arrays.asList("Orange Blossom", "White celebration", "Spring Celebration",
         "Sunflower Bouquet", "Lovely Bouquet");
     for (String name : itemNames) {
-      Item item = new Item(name, "Bouquet", 1000, name + ".jpg");
+      Item item = new Item(name, "Bouquet", 1000, new File("images", name + ".jpg"));
       session.save(item);
     }
     session.flush();

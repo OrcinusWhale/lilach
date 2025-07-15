@@ -7,6 +7,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import org.greenrobot.eventbus.EventBus;
@@ -63,8 +64,9 @@ public class ItemController {
     nameLabel.setText(item.getName());
     priceLabel.setText(item.getPrice() + "$");
     typeLabel.setText(item.getType());
-    if (item.getImage() != null) {
-      imageView.setImage(new Image(item.getImage(), 100, 100, true, true));
+    byte[] image = item.getImage();
+    if (image != null) {
+      imageView.setImage(new Image(new ByteArrayInputStream(image)));
     }
   }
 
