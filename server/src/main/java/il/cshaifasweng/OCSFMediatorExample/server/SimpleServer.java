@@ -53,6 +53,17 @@ public class SimpleServer extends AbstractServer {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            } else if (msgString.startsWith("delete")) {
+                Item item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1]));
+                try {
+                    item.getImageFile().delete();
+                    App.session.beginTransaction();
+                    App.session.delete(item);
+                    App.session.flush();
+                    App.session.getTransaction().commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else if (msgString.equals("add")) {
                 SubscribersList.add(new SubscribedClient(client));
             } else if (msgString.equals("remove")) {

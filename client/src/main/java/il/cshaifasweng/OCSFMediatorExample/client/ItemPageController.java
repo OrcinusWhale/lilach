@@ -75,11 +75,25 @@ public class ItemPageController {
   @FXML
   private Label selectedImageLabel;
 
+  @FXML
+  private Button checkDeleteBtn;
+
+  @FXML
+  private Label deleteLabel;
+
+  @FXML
+  private Button deleteBtn;
+
+  @FXML
+  private Button cancelDeleteBtn;
+
   private File selectedImage;
 
   private FileChooser fileChooser = new FileChooser();
 
   private boolean edit = false;
+
+  private boolean delete = false;
 
   @FXML
   void backToCatalogue(ActionEvent event) {
@@ -168,6 +182,29 @@ public class ItemPageController {
     }
   }
 
+  @FXML
+  void toggleDelete(ActionEvent event) {
+    delete = !delete;
+    checkDeleteBtn.setVisible(!delete);
+    checkDeleteBtn.setDisable(delete);
+    deleteLabel.setVisible(delete);
+    deleteLabel.setDisable(!delete);
+    deleteBtn.setVisible(delete);
+    deleteBtn.setDisable(!delete);
+    cancelDeleteBtn.setVisible(delete);
+    cancelDeleteBtn.setDisable(!delete);
+  }
+
+  @FXML
+  void deleteItem(ActionEvent event) {
+    try {
+      SimpleClient.getClient().sendToServer("delete " + itemId);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    backToCatalogue(event);
+  }
+
   @Subscribe
   public void displayItem(ItemEvent event) {
     item = event.getItem();
@@ -188,6 +225,8 @@ public class ItemPageController {
           editBtn.setDisable(false);
           editBtn.setVisible(true);
         }
+        checkDeleteBtn.setDisable(false);
+        checkDeleteBtn.setVisible(true);
         byte[] image = item.getImage();
         if (image != null) {
           imageView.setImage(new Image(new ByteArrayInputStream(image)));
