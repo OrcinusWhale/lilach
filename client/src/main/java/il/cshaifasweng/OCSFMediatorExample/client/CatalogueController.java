@@ -1,16 +1,17 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.CatalogueEvent;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.control.Label;
 import javafx.scene.Parent;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -24,6 +25,9 @@ public class CatalogueController {
 
   @FXML
   private Label loadingLabel;
+
+  @FXML
+  private Button addBtn;
 
   @Subscribe
   public void displayItems(CatalogueEvent event) {
@@ -42,7 +46,18 @@ public class CatalogueController {
         controller.setItem(item);
         cataloguePane.getChildren().add(itemEntry);
       }
+      addBtn.setDisable(false);
     });
+  }
+
+  @FXML
+  void addItem(ActionEvent event) {
+    try {
+      EventBus.getDefault().unregister(this);
+      App.setRoot("add");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Subscribe

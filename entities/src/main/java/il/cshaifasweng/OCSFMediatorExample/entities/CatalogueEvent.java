@@ -1,9 +1,10 @@
-package il.cshaifasweng.OCSFMediatorExample.client;
+package il.cshaifasweng.OCSFMediatorExample.entities;
 
+import java.io.Serializable;
 import java.util.List;
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 
-public class CatalogueEvent {
+public class CatalogueEvent implements Serializable {
   private List<Item> items;
 
   public CatalogueEvent(List<Item> items) {

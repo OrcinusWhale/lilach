@@ -2,7 +2,7 @@ package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.*;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.HashMap;
 
 @Entity
@@ -12,10 +12,13 @@ public class Item implements Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private int itemId;
+  private int itemId = -1;
   private String name;
   private String type;
   private int price;
+  private File imageFile;
+  @Transient
+  private byte[] image;
 
   public Item(String name, String type, int price) {
     this.name = name;
@@ -23,8 +26,21 @@ public class Item implements Serializable {
     this.price = price;
   }
 
-  public Item() {
+  public Item(String name, String type, int price, File imageFile) {
+    this.name = name;
+    this.type = type;
+    this.price = price;
+    this.imageFile = imageFile;
+  }
 
+  public Item(String name, String type, int price, byte[] image) {
+    this.name = name;
+    this.type = type;
+    this.price = price;
+    this.image = image;
+  }
+
+  public Item() {
   }
 
   public void setPrice(int price) {
@@ -39,12 +55,50 @@ public class Item implements Serializable {
     return name;
   }
 
+  public void setName(String name) {
+    this.name = name;
+  }
+
   public String getType() {
     return type;
   }
 
+  public void setType(String type) {
+    this.type = type;
+  }
+
   public int getPrice() {
     return price;
+  }
+
+  public byte[] getImage() {
+    return image;
+  }
+
+  public void setImage(byte[] image) {
+    this.image = image;
+  }
+
+  public void setImageFile(File imageFile) {
+    this.imageFile = imageFile;
+  }
+
+  public File getImageFile() {
+    return imageFile;
+  }
+
+  public void loadImage() {
+    if (imageFile == null) {
+      image = null;
+    } else {
+      image = new byte[(int) imageFile.length()];
+      try {
+        FileInputStream inputStream = new FileInputStream(imageFile);
+        inputStream.read(image);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   public HashMap<String, String> toHashMap() {

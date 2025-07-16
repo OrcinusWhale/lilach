@@ -1,14 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.ItemEvent;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.Scene;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.HashMap;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -17,6 +18,9 @@ import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 
 public class ItemController {
   private String itemId;
+
+  @FXML
+  private ImageView imageView;
 
   @FXML // fx:id="nameLabel"
   private Label nameLabel; // Value injected by FXMLLoader
@@ -61,13 +65,20 @@ public class ItemController {
     nameLabel.setText(item.getName());
     priceLabel.setText(item.getPrice() + "$");
     typeLabel.setText(item.getType());
+    byte[] image = item.getImage();
+    if (image != null) {
+      imageView.setImage(new Image(new ByteArrayInputStream(image)));
+    }
   }
 
   @Subscribe
-  public void updatePrice(ItemEvent event) {
+  public void updateItem(ItemEvent event) {
     Item item = event.getItem();
     if (Integer.toString(item.getItemId()).equals(itemId)) {
       Platform.runLater(() -> {
+        imageView.setImage(new Image(new ByteArrayInputStream(item.getImage())));
+        nameLabel.setText(item.getName());
+        typeLabel.setText(item.getType());
         priceLabel.setText(item.getPrice() + "$");
       });
     }

@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
+import java.io.File;
 import java.util.Scanner;
 import java.io.IOException;
 import java.util.List;
@@ -30,10 +31,10 @@ public class App {
   }
 
   private static void generateDb() throws Exception {
-    List<String> itemNames = Arrays.asList("Floral Embrace", "Lovely Lavender Medley", "Mother’s Embrace",
-        "Vibrant Floral Medley", "Precious Peony Bouquet");
+    List<String> itemNames = Arrays.asList("Orange Blossom", "White celebration", "Spring Celebration",
+        "Sunflower Bouquet", "Lovely Bouquet");
     for (String name : itemNames) {
-      Item item = new Item(name, "Bouquet", 1000);
+      Item item = new Item(name, "Bouquet", 1000, new File("images", name + ".jpg"));
       session.save(item);
     }
     session.flush();

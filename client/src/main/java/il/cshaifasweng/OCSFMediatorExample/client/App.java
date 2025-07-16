@@ -15,11 +15,13 @@ public class App extends Application {
 
   private static FXMLLoader fxmlLoader;
   private static Scene scene;
+  private static Stage stage;
   private static SimpleClient client;
   private static String displayed;
 
   @Override
   public void start(Stage stage) throws IOException {
+    App.stage = stage;
     scene = new Scene(loadFXML("connect"), 720, 720);
     stage.setScene(scene);
     stage.show();
@@ -48,6 +50,10 @@ public class App extends Application {
     client.sendToServer("remove");
     client.closeConnection();
     super.stop();
+  }
+
+  public static Stage getStage() {
+    return stage;
   }
 
   public static FXMLLoader getFxmlLoader() {

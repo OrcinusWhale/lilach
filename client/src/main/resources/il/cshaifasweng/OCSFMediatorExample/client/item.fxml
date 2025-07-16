@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane onMousePressed="#loadItem" prefHeight="200.0" prefWidth="200.0" style="-fx-border-width: 1; -fx-border-color: black;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ItemController">
+<AnchorPane onMousePressed="#loadItem" prefHeight="200.0" prefWidth="200.0" style="-fx-border-width: 1; -fx-border-color: black;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ItemController">
    <children>
-      <Label fx:id="nameLabel" alignment="CENTER" layoutX="11.0" layoutY="14.0" prefHeight="96.0" prefWidth="178.0" text="Flowers" textAlignment="CENTER" wrapText="true">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Label fx:id="typeLabel" alignment="CENTER" layoutX="4.0" layoutY="123.0" prefHeight="22.0" prefWidth="192.0" text="Bouquet">
-         <font>
-            <Font size="16.0" />
-         </font>
-      </Label>
-      <Label fx:id="priceLabel" alignment="CENTER" layoutX="2.0" layoutY="151.0" prefHeight="35.0" prefWidth="196.0" text="price">
+      <Label fx:id="nameLabel" layoutX="4.0" layoutY="108.0" prefHeight="35.0" prefWidth="192.0" text="Flowers" wrapText="true">
          <font>
             <Font size="24.0" />
          </font>
       </Label>
+      <Label fx:id="typeLabel" layoutX="4.0" layoutY="143.0" prefHeight="22.0" prefWidth="192.0" text="Bouquet">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Label>
+      <Label fx:id="priceLabel" layoutX="2.0" layoutY="165.0" prefHeight="35.0" prefWidth="196.0" text="price">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <ImageView fx:id="imageView" fitHeight="100.0" fitWidth="100.0" layoutX="50.0" layoutY="8.0" pickOnBounds="true" preserveRatio="true" />
    </children>
 </AnchorPane>
