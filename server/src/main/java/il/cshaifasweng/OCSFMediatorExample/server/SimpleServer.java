@@ -1,5 +1,8 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.AddResponseEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.CatalogueEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.ItemEvent;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -38,7 +41,7 @@ public class SimpleServer extends AbstractServer {
                     item.loadImage();
                 }
                 try {
-                    client.sendToClient(items);
+                    client.sendToClient(new CatalogueEvent(items));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -46,7 +49,7 @@ public class SimpleServer extends AbstractServer {
                 Item item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1]));
                 item.loadImage();
                 try {
-                    client.sendToClient(item);
+                    client.sendToClient(new ItemEvent(item));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -68,7 +71,12 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
             }
-            Item dbItem = App.session.get(Item.class, id);
+            Item dbItem;
+            if (item.getItemId() == -1) {
+                dbItem = new Item();
+            } else {
+                dbItem = App.session.get(Item.class, id);
+            }
             dbItem.setName(item.getName());
             dbItem.setImageFile(item.getImageFile());
             dbItem.setType(item.getType());
@@ -78,7 +86,8 @@ public class SimpleServer extends AbstractServer {
                 App.session.saveOrUpdate(dbItem);
                 App.session.flush();
                 App.session.getTransaction().commit();
-                sendToAllClients(item);
+                sendToAllClients(new ItemEvent(item));
+                client.sendToClient(new AddResponseEvent("add success"));
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.ItemEvent;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -183,8 +184,10 @@ public class ItemPageController {
         typeLabel.setText("Item type: " + item.getType());
         typeLabel.setVisible(true);
         typeTF.setPromptText(item.getType());
-        editBtn.setDisable(false);
-        editBtn.setVisible(true);
+        if (!edit) {
+          editBtn.setDisable(false);
+          editBtn.setVisible(true);
+        }
         byte[] image = item.getImage();
         if (image != null) {
           imageView.setImage(new Image(new ByteArrayInputStream(image)));

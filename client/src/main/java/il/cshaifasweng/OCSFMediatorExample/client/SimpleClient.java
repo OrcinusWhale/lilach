@@ -19,13 +19,7 @@ public class SimpleClient extends AbstractClient {
 
   @Override
   protected void handleMessageFromServer(Object msg) {
-    if (msg instanceof List) {
-      List<Item> items = (List<Item>) msg;
-      EventBus.getDefault().post(new CatalogueEvent(items));
-    } else if (msg instanceof Item) {
-      Item item = (Item) msg;
-      EventBus.getDefault().post(new ItemEvent(item));
-    }
+    EventBus.getDefault().post(msg);
   }
 
   public static SimpleClient getClient() {

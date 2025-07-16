@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.ItemEvent;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -71,10 +72,13 @@ public class ItemController {
   }
 
   @Subscribe
-  public void updatePrice(ItemEvent event) {
+  public void updateItem(ItemEvent event) {
     Item item = event.getItem();
     if (Integer.toString(item.getItemId()).equals(itemId)) {
       Platform.runLater(() -> {
+        imageView.setImage(new Image(new ByteArrayInputStream(item.getImage())));
+        nameLabel.setText(item.getName());
+        typeLabel.setText(item.getType());
         priceLabel.setText(item.getPrice() + "$");
       });
     }
