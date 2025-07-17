@@ -55,8 +55,11 @@ public class SimpleServer extends AbstractServer {
                 }
             } else if (msgString.startsWith("delete")) {
                 Item item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1]));
+                File imageFile = item.getImageFile();
                 try {
-                    item.getImageFile().delete();
+                    if (imageFile != null) {
+                        imageFile.delete();
+                    }
                     App.session.beginTransaction();
                     App.session.delete(item);
                     App.session.flush();
@@ -92,6 +95,7 @@ public class SimpleServer extends AbstractServer {
             dbItem.setImageFile(item.getImageFile());
             dbItem.setType(item.getType());
             dbItem.setPrice(item.getPrice());
+            dbItem.setSalePrice(item.getSalePrice());
             try {
                 App.session.beginTransaction();
                 App.session.saveOrUpdate(dbItem);

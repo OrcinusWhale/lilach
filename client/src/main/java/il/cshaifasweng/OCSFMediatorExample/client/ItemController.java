@@ -28,6 +28,9 @@ public class ItemController {
   @FXML // fx:id="priceLabel"
   private Label priceLabel; // Value injected by FXMLLoader
 
+  @FXML
+  private Label saleLabel;
+
   @FXML // fx:id="typeLabel"
   private Label typeLabel; // Value injected by FXMLLoader
 
@@ -64,6 +67,15 @@ public class ItemController {
     itemId = Integer.toString(item.getItemId());
     nameLabel.setText(item.getName());
     priceLabel.setText(item.getPrice() + "$");
+    int sale = item.getSalePrice();
+    if (sale == -1) {
+      saleLabel.setVisible(false);
+      priceLabel.getStyleClass().remove("strikethrough");
+    } else {
+      saleLabel.setText(sale + "$");
+      saleLabel.setVisible(true);
+      priceLabel.getStyleClass().add("strikethrough");
+    }
     typeLabel.setText(item.getType());
     byte[] image = item.getImage();
     if (image != null) {
@@ -76,10 +88,7 @@ public class ItemController {
     Item item = event.getItem();
     if (Integer.toString(item.getItemId()).equals(itemId)) {
       Platform.runLater(() -> {
-        imageView.setImage(new Image(new ByteArrayInputStream(item.getImage())));
-        nameLabel.setText(item.getName());
-        typeLabel.setText(item.getType());
-        priceLabel.setText(item.getPrice() + "$");
+        setItem(item);
       });
     }
   }

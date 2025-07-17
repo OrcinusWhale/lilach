@@ -17,11 +17,16 @@
             <Font size="16.0" />
          </font>
       </Label>
-      <Label fx:id="priceLabel" layoutX="2.0" layoutY="165.0" prefHeight="35.0" prefWidth="196.0" text="price">
+      <Label fx:id="priceLabel" layoutX="2.0" layoutY="165.0" prefHeight="35.0" prefWidth="100.0" stylesheets="@strikethrough.css" text="price">
          <font>
             <Font size="24.0" />
          </font>
       </Label>
       <ImageView fx:id="imageView" fitHeight="100.0" fitWidth="100.0" layoutX="50.0" layoutY="8.0" pickOnBounds="true" preserveRatio="true" />
+      <Label fx:id="saleLabel" layoutX="100.0" layoutY="165.0" text="Sale" textFill="RED">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
    </children>
 </AnchorPane>

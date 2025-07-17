@@ -43,7 +43,9 @@
       <Button fx:id="confirmBtn" layoutX="15.0" layoutY="297.0" mnemonicParsing="false" onAction="#addItem" text="Confirm" />
       <Label fx:id="nameError" layoutX="264.0" layoutY="129.0" text="Name is required" textFill="RED" visible="false" />
       <Label fx:id="typeError" layoutX="251.0" layoutY="171.0" text="Type is required" textFill="RED" visible="false" />
-      <Label fx:id="priceError" layoutX="248.0" layoutY="211.0" text="Invalid price" textFill="RED" visible="false" />
+      <Label fx:id="priceError" layoutX="471.0" layoutY="211.0" text="Invalid price" textFill="RED" visible="false" />
       <Label fx:id="successLabel" layoutX="89.0" layoutY="301.0" text="Item added" textFill="#009600" visible="false" />
+      <CheckBox fx:id="saleCheck" layoutX="244.0" layoutY="211.0" mnemonicParsing="false" onAction="#toggleSale" selected="true" text="Sale:" />
+      <TextField fx:id="saleTF" layoutX="301.0" layoutY="207.0" />
    </children>
 </AnchorPane>
