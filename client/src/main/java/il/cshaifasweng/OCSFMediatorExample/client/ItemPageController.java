@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.ItemEvent;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -20,6 +19,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
+import il.cshaifasweng.OCSFMediatorExample.entities.UpdateItemEvent;
 
 public class ItemPageController {
 
@@ -246,7 +246,7 @@ public class ItemPageController {
   }
 
   @Subscribe
-  public void displayItem(ItemEvent event) {
+  public void displayItem(UpdateItemEvent event) {
     item = event.getItem();
     String id = Integer.toString(item.getItemId());
     if (id.equals(itemId)) {
@@ -293,8 +293,7 @@ public class ItemPageController {
     EventBus.getDefault().register(this);
     fileChooser.setTitle("Choose image");
     fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif", "*.bmp")
-    );
+        new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif", "*.bmp"));
   }
 
   public void setItemId(String itemId) {

@@ -2,14 +2,15 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CatalogueController">
+<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CatalogueController">
    <content>
-      <FlowPane fx:id="cataloguePane" alignment="TOP_CENTER" hgap="16.0" prefHeight="720.0" prefWidth="704.0" vgap="16.0">
+      <FlowPane fx:id="cataloguePane" hgap="16.0" prefHeight="720.0" prefWidth="704.0" vgap="16.0">
          <children>
             <Label alignment="CENTER" prefHeight="80.0" prefWidth="672.0" text="Catalogue">
                <font>
@@ -24,6 +25,19 @@
             <Button fx:id="addBtn" disable="true" mnemonicParsing="false" onAction="#addItem" text="Add item">
                <FlowPane.margin>
                   <Insets right="600.0" />
+               </FlowPane.margin>
+            </Button>
+            <Label text="Category:" />
+            <ChoiceBox fx:id="categoryBox" prefWidth="150.0" />
+            <Label text="Store:" />
+            <ChoiceBox fx:id="storeBox" prefWidth="150.0">
+               <FlowPane.margin>
+                  <Insets />
+               </FlowPane.margin>
+            </ChoiceBox>
+            <Button fx:id="filterBtn" mnemonicParsing="false" onAction="#filter" text="Filter">
+               <FlowPane.margin>
+                  <Insets right="150.0" />
                </FlowPane.margin>
             </Button>
          </children>
