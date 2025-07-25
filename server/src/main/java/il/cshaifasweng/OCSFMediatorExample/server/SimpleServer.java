@@ -104,10 +104,11 @@ public class SimpleServer extends AbstractServer {
         App.session.saveOrUpdate(dbItem);
         App.session.flush();
         App.session.getTransaction().commit();
+        dbItem.loadImage();
         if (newItem) {
-          sendToAllClients(new NewItemEvent(item));
+          sendToAllClients(new NewItemEvent(dbItem));
         } else {
-          sendToAllClients(new UpdateItemEvent(item));
+          sendToAllClients(new UpdateItemEvent(dbItem));
         }
         client.sendToClient(new AddResponseEvent("add success"));
       } catch (Exception e) {
