@@ -57,6 +57,12 @@ public class AddController {
     @FXML
     private Label successLabel;
 
+    @FXML
+    private CheckBox saleCheck;
+
+    @FXML
+    private TextField saleTF;
+
     private FileChooser fileChooser = new FileChooser();
 
     private File selectedImage;
@@ -68,16 +74,18 @@ public class AddController {
         String name = nameTF.getText();
         String type = typeTF.getText();
         String priceString = priceTF.getText();
+        String saleString = saleTF.getText();
         int price = 0;
-        if (name.equals("")) {
+        int sale = -1;
+        if (name.isEmpty()) {
             nameError.setVisible(true);
             error = true;
         }
-        if (type.equals("")) {
+        if (type.isEmpty()) {
             typeError.setVisible(true);
             error = true;
         }
-        if (priceString.equals("")) {
+        if (priceString.isEmpty()) {
             priceError.setVisible(true);
             error = true;
         }
@@ -87,6 +95,14 @@ public class AddController {
             priceError.setVisible(true);
             error = true;
         }
+        if (!saleString.isEmpty()) {
+           try {
+               sale = Integer.parseInt(saleString);
+           } catch (NumberFormatException e) {
+               priceError.setVisible(true);
+               error = true;
+           }
+        }
         if (error) {
             return;
         }
@@ -94,6 +110,7 @@ public class AddController {
         typeError.setVisible(false);
         priceError.setVisible(false);
         Item item = new Item(name, type, price);
+        item.setSalePrice(sale);
         if (imageCheck.isSelected() && selectedImage != null) {
             item.setImageFile(selectedImage);
             item.loadImage();
@@ -132,6 +149,13 @@ public class AddController {
         browseBtn.setDisable(!value);
         browseBtn.setVisible(value);
         selectedImageLabel.setVisible(value);
+    }
+
+    @FXML
+    void toggleSale(ActionEvent event) {
+        boolean value = saleCheck.isSelected();
+        saleTF.setDisable(!value);
+        saleTF.setVisible(value);
     }
 
     @FXML

@@ -26,7 +26,7 @@
             <Font size="20.0" />
          </font>
       </Label>
-      <Label fx:id="priceLabel" layoutX="14.0" layoutY="216.0" text="Price:" visible="false">
+      <Label fx:id="priceLabel" layoutX="14.0" layoutY="216.0" stylesheets="@strikethrough.css" text="Price:" visible="false">
          <font>
             <Font size="20.0" />
          </font>
@@ -35,7 +35,7 @@
       <TextField fx:id="priceTF" disable="true" layoutX="66.0" layoutY="218.0" visible="false" />
       <Button fx:id="confirmBtn" disable="true" layoutX="15.0" layoutY="294.0" mnemonicParsing="false" onAction="#confirmEdit" text="Confirm" visible="false" />
       <Button fx:id="cancelBtn" disable="true" layoutX="115.0" layoutY="294.0" mnemonicParsing="false" onAction="#toggleEdit" text="Cancel" visible="false" />
-      <Label fx:id="priceErrorLabel" layoutX="236.0" layoutY="220.0" text="Invalid price" textFill="RED" visible="false">
+      <Label fx:id="priceErrorLabel" layoutX="466.0" layoutY="220.0" text="Invalid price" textFill="RED" visible="false">
          <font>
             <Font size="16.0" />
          </font>
@@ -54,5 +54,20 @@
       </CheckBox>
       <Button fx:id="browseBtn" disable="true" layoutX="127.0" layoutY="258.0" mnemonicParsing="false" onAction="#browseImage" text="Browse" visible="false" />
       <Label fx:id="selectedImageLabel" layoutX="195.0" layoutY="262.0" visible="false" />
+      <Button fx:id="checkDeleteBtn" disable="true" layoutX="316.0" layoutY="539.0" mnemonicParsing="false" onAction="#toggleDelete" text="Delete item" visible="false" />
+      <Label fx:id="deleteLabel" layoutX="163.0" layoutY="538.0" text="Are you sure you want to delete this item?" textFill="RED" visible="false">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </Label>
+      <Button fx:id="deleteBtn" disable="true" layoutX="287.0" layoutY="580.0" mnemonicParsing="false" onAction="#deleteItem" text="Delete" textFill="RED" visible="false" />
+      <Button fx:id="cancelDeleteBtn" disable="true" layoutX="375.0" layoutY="580.0" mnemonicParsing="false" onAction="#toggleDelete" text="Cancel" visible="false" />
+      <CheckBox fx:id="saleCheck" disable="true" layoutX="240.0" layoutY="222.0" mnemonicParsing="false" onAction="#toggleSale" text="Sale:" visible="false" />
+      <TextField fx:id="saleTF" disable="true" layoutX="294.0" layoutY="218.0" visible="false" />
+      <Label fx:id="saleLabel" layoutX="152.0" layoutY="217.0" text="Sale:" textFill="RED" visible="false">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </Label>
    </children>
 </AnchorPane>

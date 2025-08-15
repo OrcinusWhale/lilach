@@ -16,6 +16,7 @@ public class Item implements Serializable {
   private String name;
   private String type;
   private int price;
+  private int salePrice = -1;
   private File imageFile;
   @Transient
   private byte[] image;
@@ -69,6 +70,14 @@ public class Item implements Serializable {
 
   public int getPrice() {
     return price;
+  }
+
+  public void setSalePrice(int salePrice) {
+    this.salePrice = salePrice;
+  }
+
+  public int getSalePrice() {
+    return salePrice;
   }
 
   public byte[] getImage() {

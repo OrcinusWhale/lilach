@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.ItemEvent;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -20,6 +19,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
+import il.cshaifasweng.OCSFMediatorExample.entities.UpdateItemEvent;
 
 public class ItemPageController {
 
@@ -75,11 +75,34 @@ public class ItemPageController {
   @FXML
   private Label selectedImageLabel;
 
+  @FXML
+  private Button checkDeleteBtn;
+
+  @FXML
+  private Label deleteLabel;
+
+  @FXML
+  private Button deleteBtn;
+
+  @FXML
+  private Button cancelDeleteBtn;
+
+  @FXML
+  private CheckBox saleCheck;
+
+  @FXML
+  private TextField saleTF;
+
+  @FXML
+  private Label saleLabel;
+
   private File selectedImage;
 
   private FileChooser fileChooser = new FileChooser();
 
   private boolean edit = false;
+
+  private boolean delete = false;
 
   @FXML
   void backToCatalogue(ActionEvent event) {
@@ -103,6 +126,19 @@ public class ItemPageController {
     typeTF.setVisible(edit);
     priceTF.setDisable(!edit);
     priceTF.setVisible(edit);
+    boolean onSale = (item.getSalePrice() != -1);
+    saleCheck.setSelected(onSale);
+    priceLabel.getStyleClass().remove("strikethrough");
+    if (onSale) {
+      saleTF.setDisable(!edit);
+      saleTF.setVisible(edit);
+      saleLabel.setVisible(!edit);
+    } else {
+      saleTF.setDisable(true);
+      saleTF.setVisible(false);
+    }
+    saleCheck.setDisable(!edit);
+    saleCheck.setVisible(edit);
     imageCheck.setDisable(!edit);
     imageCheck.setVisible(edit);
     browseBtn.setDisable(!edit);
@@ -117,12 +153,30 @@ public class ItemPageController {
   }
 
   @FXML
+  void toggleSale(ActionEvent event) {
+    boolean value = saleCheck.isSelected();
+    saleTF.setDisable(!value);
+    saleTF.setVisible(value);
+  }
+
+  @FXML
   void confirmEdit(ActionEvent event) {
     String price = priceTF.getText();
     if (!price.isEmpty()) {
       try {
         item.setPrice(Integer.parseInt(price));
       } catch (Exception e) {
+        priceErrorLabel.setVisible(true);
+        return;
+      }
+    }
+    String sale = saleTF.getText();
+    if (!saleCheck.isSelected()) {
+      item.setSalePrice(-1);
+    } else if (saleCheck.isSelected() && !sale.isEmpty()) {
+      try {
+        item.setSalePrice(Integer.parseInt(sale));
+      } catch (NumberFormatException e) {
         priceErrorLabel.setVisible(true);
         return;
       }
@@ -168,8 +222,31 @@ public class ItemPageController {
     }
   }
 
+  @FXML
+  void toggleDelete(ActionEvent event) {
+    delete = !delete;
+    checkDeleteBtn.setVisible(!delete);
+    checkDeleteBtn.setDisable(delete);
+    deleteLabel.setVisible(delete);
+    deleteLabel.setDisable(!delete);
+    deleteBtn.setVisible(delete);
+    deleteBtn.setDisable(!delete);
+    cancelDeleteBtn.setVisible(delete);
+    cancelDeleteBtn.setDisable(!delete);
+  }
+
+  @FXML
+  void deleteItem(ActionEvent event) {
+    try {
+      SimpleClient.getClient().sendToServer("delete " + itemId);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    backToCatalogue(event);
+  }
+
   @Subscribe
-  public void displayItem(ItemEvent event) {
+  public void displayItem(UpdateItemEvent event) {
     item = event.getItem();
     String id = Integer.toString(item.getItemId());
     if (id.equals(itemId)) {
@@ -178,8 +255,19 @@ public class ItemPageController {
         idLabel.setVisible(true);
         nameLabel.setText(item.getName());
         nameTF.setPromptText(item.getName());
+        int salePrice = item.getSalePrice();
         priceLabel.setText("Price: " + item.getPrice() + "$");
         priceLabel.setVisible(true);
+        if (salePrice != -1) {
+          priceLabel.getStyleClass().add("strikethrough");
+          saleLabel.setText("SALE: " + salePrice + "$");
+          saleLabel.setVisible(true);
+          saleTF.setPromptText("" + salePrice);
+        } else {
+          priceLabel.getStyleClass().remove("strikethrough");
+          saleLabel.setVisible(false);
+          saleTF.setPromptText("");
+        }
         priceTF.setPromptText("" + item.getPrice());
         typeLabel.setText("Item type: " + item.getType());
         typeLabel.setVisible(true);
@@ -188,6 +276,8 @@ public class ItemPageController {
           editBtn.setDisable(false);
           editBtn.setVisible(true);
         }
+        checkDeleteBtn.setDisable(false);
+        checkDeleteBtn.setVisible(true);
         byte[] image = item.getImage();
         if (image != null) {
           imageView.setImage(new Image(new ByteArrayInputStream(image)));
@@ -203,8 +293,7 @@ public class ItemPageController {
     EventBus.getDefault().register(this);
     fileChooser.setTitle("Choose image");
     fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif", "*.bmp")
-    );
+        new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif", "*.bmp"));
   }
 
   public void setItemId(String itemId) {

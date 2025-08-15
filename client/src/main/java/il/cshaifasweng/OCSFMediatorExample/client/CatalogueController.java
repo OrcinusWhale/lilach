@@ -2,21 +2,25 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.CatalogueEvent;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.control.Label;
 import javafx.scene.Parent;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
+import il.cshaifasweng.OCSFMediatorExample.entities.NewItemEvent;
 
 public class CatalogueController {
 
@@ -29,25 +33,66 @@ public class CatalogueController {
   @FXML
   private Button addBtn;
 
+  @FXML
+  private ChoiceBox<String> categoryBox;
+
+  @FXML
+  private ChoiceBox<String> storeBox;
+
+  private List<Parent> itemEntries = new ArrayList<>();
+
+  private List<Item> items = new ArrayList<>();
+
   @Subscribe
   public void displayItems(CatalogueEvent event) {
     List<Item> items = event.getItems();
+    this.items = items;
     Platform.runLater(() -> {
       cataloguePane.getChildren().remove(loadingLabel);
       for (Item item : items) {
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("item" + ".fxml"));
-        Parent itemEntry = null;
-        try {
-          itemEntry = fxmlLoader.load();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-        ItemController controller = (ItemController) fxmlLoader.getController();
-        controller.setItem(item);
-        cataloguePane.getChildren().add(itemEntry);
+        loadItem(item);
       }
       addBtn.setDisable(false);
     });
+  }
+
+  @Subscribe
+  public void newItem(NewItemEvent event) {
+    Item item = event.getItem();
+    items.add(item);
+    Platform.runLater(() -> {
+      loadItem(item);
+    });
+  }
+
+  public void loadItem(Item item) {
+    ObservableList<String> categories = categoryBox.getItems();
+    String category = item.getType();
+    if (!categories.contains(category)) {
+      categories.add(category);
+    }
+    String selectedCategory = categoryBox.getValue();
+    if (!selectedCategory.equals("All") && !selectedCategory.equals(category)) {
+      return;
+    }
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("item" + ".fxml"));
+    Parent itemEntry = null;
+    try {
+      itemEntry = fxmlLoader.load();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    itemEntries.add(itemEntry);
+    ItemController controller = (ItemController) fxmlLoader.getController();
+    controller.setItem(item);
+    cataloguePane.getChildren().add(itemEntry);
+  }
+
+  @FXML
+  void filter(ActionEvent event) {
+    cataloguePane.getChildren().removeAll(itemEntries);
+    itemEntries = new ArrayList<>();
+    displayItems(new CatalogueEvent(items));
   }
 
   @FXML
@@ -68,5 +113,9 @@ public class CatalogueController {
   @FXML
   void initialize() {
     EventBus.getDefault().register(this);
+    categoryBox.getItems().add("All");
+    categoryBox.setValue("All");
+    storeBox.getItems().add("All");
+    storeBox.setValue("All");
   }
 }
