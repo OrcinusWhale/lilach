@@ -12,6 +12,8 @@ import org.greenrobot.eventbus.Subscribe;
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
 import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.UserSubscriptionSetupRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.AccountSetupResponse;
 
 import java.io.IOException;
 import java.net.URL;
@@ -50,14 +52,6 @@ public class UserDetailsController implements Initializable {
     @FXML
     private Label subscriptionMessageLabel;
 
-    @FXML
-    private ComboBox<User.SubscriptionType> subscriptionTypeCombo;
-
-    @FXML
-    private TextArea justificationArea;
-
-    @FXML
-    private Button requestSubscriptionButton;
 
     @FXML
     private Button logoutButton;
@@ -66,22 +60,43 @@ public class UserDetailsController implements Initializable {
     private Button browseCatalogueButton;
 
     @FXML
-    private VBox subscriptionRequestPanel;
+    private VBox subscriptionBenefitsPanel;
+
+    @FXML
+    private Button adminPanelButton;
+
+    @FXML
+    private Label userRoleLabel;
+
+    // Annual subscription setup fields
+    @FXML
+    private TextField taxRegistrationField;
+
+    @FXML
+    private TextField customerIdField;
+
+    @FXML
+    private TextField creditCardField;
+
+    @FXML
+    private TextField customerNameField;
+
+    @FXML
+    private Button setupSubscriptionButton;
+
+    @FXML
+    private VBox subscriptionSetupPanel;
+
+    @FXML
+    private Label accountValueLabel;
+
+    @FXML
+    private Label discountInfoLabel;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         EventBus.getDefault().register(this);
-        initializeSubscriptionCombo();
         loadUserDetails();
-    }
-
-    private void initializeSubscriptionCombo() {
-        subscriptionTypeCombo.getItems().addAll(
-            User.SubscriptionType.BASIC,
-            User.SubscriptionType.PREMIUM,
-            User.SubscriptionType.VIP
-        );
-        subscriptionTypeCombo.setValue(User.SubscriptionType.BASIC);
     }
 
     private void loadUserDetails() {
@@ -94,7 +109,36 @@ public class UserDetailsController implements Initializable {
             phoneLabel.setText(currentUser.getPhone());
             addressLabel.setText(currentUser.getAddress());
 
+            // Display user role
+            userRoleLabel.setText("Role: " + currentUser.getUserType().toString());
+            
+            // Configure role-based access
+            configureRoleBasedAccess(currentUser);
+            
             updateSubscriptionStatus(currentUser);
+        }
+    }
+
+    private void configureRoleBasedAccess(User user) {
+        // Show/hide admin panel button based on user role
+        if (adminPanelButton != null) {
+            adminPanelButton.setVisible(user.isAdmin());
+            adminPanelButton.setManaged(user.isAdmin());
+        }
+        
+        // Configure subscription panel visibility based on user type
+        if (user.isEmployee() || user.isAdmin()) {
+            // Employees and admins don't need subscription setup
+            if (subscriptionSetupPanel != null) {
+                subscriptionSetupPanel.setVisible(false);
+                subscriptionSetupPanel.setManaged(false);
+            }
+        } else {
+            // Only customers can setup subscriptions
+            if (subscriptionSetupPanel != null && !user.isSubscriptionActive()) {
+                subscriptionSetupPanel.setVisible(true);
+                subscriptionSetupPanel.setManaged(true);
+            }
         }
     }
 
@@ -112,44 +156,109 @@ public class UserDetailsController implements Initializable {
                 subscriptionDatesLabel.setVisible(true);
             }
             
-            subscriptionRequestPanel.setVisible(false);
+            // Show subscription benefits for active users
+            if (accountValueLabel != null) {
+                accountValueLabel.setText("Account Value: " + user.getAccountValue() + "₪");
+                accountValueLabel.setVisible(true);
+            }
+            if (discountInfoLabel != null) {
+                discountInfoLabel.setText("Benefits: 10% discount on purchases above 50₪");
+                discountInfoLabel.setVisible(true);
+            }
+            
+            // Hide subscription setup panels for active users
+            if (subscriptionSetupPanel != null) {
+                subscriptionSetupPanel.setVisible(false);
+                subscriptionSetupPanel.setManaged(false);
+            }
+            
+            // Show subscription benefits panel for active users
+            if (subscriptionBenefitsPanel != null) {
+                subscriptionBenefitsPanel.setVisible(true);
+                subscriptionBenefitsPanel.setManaged(true);
+            }
         } else {
             subscriptionStatusLabel.setText("Inactive");
             subscriptionStatusLabel.setTextFill(javafx.scene.paint.Color.RED);
             subscriptionTypeLabel.setText("None");
             subscriptionDatesLabel.setVisible(false);
-            subscriptionRequestPanel.setVisible(user.canRequestSubscription());
+            
+            // Hide account value and discount info for inactive users
+            if (accountValueLabel != null) accountValueLabel.setVisible(false);
+            if (discountInfoLabel != null) discountInfoLabel.setVisible(false);
+            
+            // Show annual subscription setup panel instead of old subscription request
+            if (subscriptionSetupPanel != null && user.isCustomer()) {
+                subscriptionSetupPanel.setVisible(true);
+                subscriptionSetupPanel.setManaged(true);
+            }
         }
     }
 
+
     @FXML
-    void handleRequestSubscription(ActionEvent event) {
+    void handleSetupSubscription(ActionEvent event) {
         User currentUser = LoginController.getCurrentUser();
         if (currentUser == null) {
             showMessage("Error: User not logged in", false);
             return;
         }
 
-        String justification = justificationArea.getText().trim();
-        if (justification.isEmpty()) {
-            showMessage("Please provide justification for your subscription request", false);
+        if (!validateSubscriptionSetupFields()) {
             return;
         }
 
         try {
-            SubscriptionRequest request = new SubscriptionRequest(
+            UserSubscriptionSetupRequest request = new UserSubscriptionSetupRequest(
                 currentUser.getUserId(),
-                subscriptionTypeCombo.getValue(),
-                justification
+                taxRegistrationField.getText().trim(),
+                customerIdField.getText().trim(),
+                creditCardField.getText().trim(),
+                customerNameField.getText().trim()
             );
 
             App.getClient().sendToServer(request);
-            requestSubscriptionButton.setDisable(true);
-            requestSubscriptionButton.setText("Requesting...");
+            setupSubscriptionButton.setDisable(true);
+            setupSubscriptionButton.setText("Setting up...");
         } catch (IOException e) {
             showMessage("Connection error. Please try again.", false);
             e.printStackTrace();
         }
+    }
+
+    private boolean validateSubscriptionSetupFields() {
+        // Debug logging
+        System.out.println("Validating subscription fields...");
+        System.out.println("Tax Registration: " + (taxRegistrationField != null ? "'" + taxRegistrationField.getText() + "'" : "NULL"));
+        System.out.println("Customer ID: " + (customerIdField != null ? "'" + customerIdField.getText() + "'" : "NULL"));
+        System.out.println("Credit Card: " + (creditCardField != null ? "'" + creditCardField.getText() + "'" : "NULL"));
+        System.out.println("Customer Name: " + (customerNameField != null ? "'" + customerNameField.getText() + "'" : "NULL"));
+        
+        if (taxRegistrationField == null || taxRegistrationField.getText().trim().isEmpty()) {
+            showMessage("Tax registration number is required", false);
+            return false;
+        }
+        if (customerIdField == null || customerIdField.getText().trim().isEmpty()) {
+            showMessage("Customer ID is required", false);
+            return false;
+        }
+        if (creditCardField == null || creditCardField.getText().trim().isEmpty()) {
+            showMessage("Credit card number is required", false);
+            return false;
+        }
+        if (customerNameField == null || customerNameField.getText().trim().isEmpty()) {
+            showMessage("Customer name is required", false);
+            return false;
+        }
+
+        // Basic credit card validation
+        String creditCard = creditCardField.getText().trim().replaceAll("\\s+", "");
+        if (creditCard.length() < 13 || creditCard.length() > 19) {
+            showMessage("Please enter a valid credit card number", false);
+            return false;
+        }
+
+        return true;
     }
 
     @FXML
@@ -173,21 +282,52 @@ public class UserDetailsController implements Initializable {
         }
     }
 
+    @FXML
+    void handleAdminPanel(ActionEvent event) {
+        User currentUser = LoginController.getCurrentUser();
+        if (currentUser == null || !currentUser.isAdmin()) {
+            showMessage("Access denied: Admin privileges required", false);
+            return;
+        }
+        
+        try {
+            App.setRoot("admin");
+        } catch (IOException e) {
+            showMessage("Error loading admin panel", false);
+            e.printStackTrace();
+        }
+    }
+
+
     @Subscribe
-    public void onSubscriptionResponse(SubscriptionResponse response) {
+    public void onAccountSetupResponse(AccountSetupResponse response) {
         Platform.runLater(() -> {
-            requestSubscriptionButton.setDisable(false);
-            requestSubscriptionButton.setText("Request Subscription");
+            setupSubscriptionButton.setDisable(false);
+            setupSubscriptionButton.setText("Setup Annual Subscription (100₪)");
 
             if (response.isSuccess()) {
-                showMessage("Subscription request submitted successfully! You will be notified once it's processed.", true);
-                justificationArea.clear();
+                showMessage("Annual subscription activated successfully! You now have 10% discount on purchases above 50₪.", true);
                 
-                // Update current user's subscription status if approved immediately
+                // Clear the form fields
+                taxRegistrationField.clear();
+                customerIdField.clear();
+                creditCardField.clear();
+                customerNameField.clear();
+                
+                // Update current user's subscription status
                 User currentUser = LoginController.getCurrentUser();
-                if (currentUser != null && response.getApprovedSubscriptionType() != null) {
-                    currentUser.setSubscriptionType(response.getApprovedSubscriptionType());
-                    currentUser.setSubscriptionActive(true);
+                if (currentUser != null && response.getUser() != null) {
+                    // Update the current user with the new subscription data
+                    User updatedUser = response.getUser();
+                    currentUser.setSubscriptionType(updatedUser.getSubscriptionType());
+                    currentUser.setSubscriptionActive(updatedUser.isSubscriptionActive());
+                    currentUser.setSubscriptionStartDate(updatedUser.getSubscriptionStartDate());
+                    currentUser.setSubscriptionEndDate(updatedUser.getSubscriptionEndDate());
+                    currentUser.setAccountValue(updatedUser.getAccountValue());
+                    currentUser.setTaxRegistrationNumber(updatedUser.getTaxRegistrationNumber());
+                    currentUser.setCustomerId(updatedUser.getCustomerId());
+                    currentUser.setCustomerName(updatedUser.getCustomerName());
+                    
                     updateSubscriptionStatus(currentUser);
                 }
             } else {

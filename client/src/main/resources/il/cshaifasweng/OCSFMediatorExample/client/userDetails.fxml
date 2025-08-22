@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.GridPane?>
@@ -53,10 +54,22 @@
                         
                         <Label text="Address:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
                         <Label fx:id="addressLabel" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                        
+                        <Label text="Role:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                        <Label fx:id="userRoleLabel" GridPane.columnIndex="1" GridPane.rowIndex="5" textFill="#2E8B57">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
                      </children>
                   </GridPane>
                   
-                  <Button fx:id="browseCatalogueButton" onAction="#handleBrowseCatalogue" prefWidth="200.0" style="-fx-background-color: #2E8B57; -fx-text-fill: white;" text="Browse Catalogue" />
+                  <VBox spacing="10.0">
+                     <children>
+                        <Button fx:id="browseCatalogueButton" onAction="#handleBrowseCatalogue" prefWidth="200.0" style="-fx-background-color: #2E8B57; -fx-text-fill: white;" text="Browse Catalogue" />
+                        <Button fx:id="adminPanelButton" onAction="#handleAdminPanel" prefWidth="200.0" style="-fx-background-color: #dc3545; -fx-text-fill: white;" text="Admin Panel" visible="false" managed="false" />
+                     </children>
+                  </VBox>
                </children>
             </VBox>
             
@@ -89,13 +102,57 @@
                      </children>
                   </VBox>
                   
-                  <VBox fx:id="subscriptionRequestPanel" spacing="10.0">
+                  <!-- Annual Subscription Setup Panel -->
+                  <VBox fx:id="subscriptionSetupPanel" spacing="10.0" visible="false" managed="false">
                      <children>
-                        <Label text="Request New Subscription:" />
-                        <ComboBox fx:id="subscriptionTypeCombo" prefWidth="200.0" />
-                        <Label text="Justification:" />
-                        <TextArea fx:id="justificationArea" prefRowCount="3" prefWidth="200.0" promptText="Please explain why you need this subscription..." />
-                        <Button fx:id="requestSubscriptionButton" onAction="#handleRequestSubscription" prefWidth="200.0" style="-fx-background-color: #ffc107; -fx-text-fill: black;" text="Request Subscription" />
+                        <Label text="Annual Subscription Setup (100₪)" textFill="#856404">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Label>
+                        <Label text="Get 10% discount on purchases above 50₪!" textFill="#6c757d" />
+                        
+                        <GridPane hgap="10.0" vgap="8.0">
+                           <children>
+                              <Label text="Tax Registration Number:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                              <TextField fx:id="taxRegistrationField" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="200.0" promptText="Enter tax registration number" />
+                              
+                              <Label text="Customer ID:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                              <TextField fx:id="customerIdField" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="200.0" promptText="Enter customer ID" />
+                              
+                              <Label text="Credit Card Number:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                              <TextField fx:id="creditCardField" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="200.0" promptText="Enter credit card number" />
+                              
+                              <Label text="Customer Name:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                              <TextField fx:id="customerNameField" GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="200.0" promptText="Enter full customer name" />
+                           </children>
+                        </GridPane>
+                        
+                        <Button fx:id="setupSubscriptionButton" onAction="#handleSetupSubscription" prefWidth="250.0" style="-fx-background-color: #28a745; -fx-text-fill: white;" text="Setup Annual Subscription (100₪)" />
+                     </children>
+                  </VBox>
+                  
+                  <!-- Subscription Benefits Panel (for active subscriptions) -->
+                  <VBox fx:id="subscriptionBenefitsPanel" spacing="10.0" visible="false" managed="false">
+                     <children>
+                        <Label text="Subscription Benefits" textFill="#28a745">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Label>
+                        <HBox spacing="10.0">
+                           <children>
+                              <Label text="Account Value:" />
+                              <Label fx:id="accountValueLabel" textFill="#28a745">
+                                 <font>
+                                    <Font name="System Bold" size="12.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                        </HBox>
+                        <Label text="✓ 10% discount on purchases above 50₪" textFill="#6c757d" />
+                        <Label text="✓ Priority customer support" textFill="#6c757d" />
+                        <Label text="✓ Exclusive offers and promotions" textFill="#6c757d" />
                      </children>
                   </VBox>
                   

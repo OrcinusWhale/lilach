@@ -5,10 +5,16 @@ import il.cshaifasweng.OCSFMediatorExample.entities.CatalogueEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.NewItemEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.UpdateItemEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
+import il.cshaifasweng.OCSFMediatorExample.entities.Employee;
 import il.cshaifasweng.OCSFMediatorExample.entities.LoginRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.LoginResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.EmployeeManagementRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.EmployeeManagementResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.AccountSetupRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.AccountSetupResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.UserSubscriptionSetupRequest;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -28,9 +34,12 @@ import org.hibernate.HibernateException;
 
 public class SimpleServer extends AbstractServer {
   private static final ArrayList<SubscribedClient> SubscribersList = new ArrayList<>();
+  private SubscriptionService subscriptionService;
 
   public SimpleServer(int port) {
     super(port);
+    // Initialize SubscriptionService with session instead of sessionFactory
+    this.subscriptionService = new SubscriptionService(App.session.getSessionFactory());
   }
 
   @Override
@@ -120,74 +129,26 @@ public class SimpleServer extends AbstractServer {
         e.printStackTrace();
       }
     } else if (msg instanceof User) {
-      // Handle user registration
+      // Handle user registration using AuthenticationService
       User newUser = (User) msg;
       System.out.println("Server received user registration request for: " + newUser.getUsername());
       
       try {
-        // Check if user already exists
-        CriteriaBuilder builder = App.session.getCriteriaBuilder();
-        CriteriaQuery<User> query = builder.createQuery(User.class);
-        query.from(User.class);
-        List<User> existingUsers = App.session.createQuery(query).getResultList();
-        
-        boolean userExists = existingUsers.stream()
-            .anyMatch(user -> user.getUsername().equals(newUser.getUsername()));
-        
-        if (userExists) {
-          System.out.println("Registration failed: User already exists");
-          client.sendToClient(new LoginResponse(false, "Username already exists", null));
-        } else {
-          // Save new user
-          App.session.beginTransaction();
-          App.session.save(newUser);
-          App.session.flush();
-          App.session.getTransaction().commit();
-          System.out.println("User registered successfully: " + newUser.getUsername());
-          client.sendToClient(new LoginResponse(true, "Registration successful", null));
-        }
-      } catch (Exception e) {
-        System.err.println("Error during user registration: " + e.getMessage());
-        e.printStackTrace();
-        try {
-          client.sendToClient(new LoginResponse(false, "Registration failed: Server error", null));
-        } catch (IOException ioException) {
-          System.err.println("Failed to send error response: " + ioException.getMessage());
-        }
+        LoginResponse response = AuthenticationService.registerUser(newUser);
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send registration response: " + e.getMessage());
       }
     } else if (msg instanceof LoginRequest) {
-      // Handle login request
+      // Handle login request using AuthenticationService
       LoginRequest loginRequest = (LoginRequest) msg;
       System.out.println("Server received login request for: " + loginRequest.getUsername());
       
       try {
-        // Find user in database
-        CriteriaBuilder builder = App.session.getCriteriaBuilder();
-        CriteriaQuery<User> query = builder.createQuery(User.class);
-        query.from(User.class);
-        List<User> users = App.session.createQuery(query).getResultList();
-        
-        User foundUser = users.stream()
-            .filter(user -> user.getUsername().equals(loginRequest.getUsername()) 
-                         && user.getPassword().equals(loginRequest.getPassword()))
-            .findFirst()
-            .orElse(null);
-        
-        if (foundUser != null) {
-          System.out.println("Login successful for: " + foundUser.getUsername());
-          client.sendToClient(new LoginResponse(true, "Login successful", foundUser));
-        } else {
-          System.out.println("Login failed: Invalid credentials");
-          client.sendToClient(new LoginResponse(false, "Invalid username or password", null));
-        }
-      } catch (Exception e) {
-        System.err.println("Error during login: " + e.getMessage());
-        e.printStackTrace();
-        try {
-          client.sendToClient(new LoginResponse(false, "Login failed: Server error", null));
-        } catch (IOException ioException) {
-          System.err.println("Failed to send error response: " + ioException.getMessage());
-        }
+        LoginResponse response = AuthenticationService.authenticateUser(loginRequest);
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send login response: " + e.getMessage());
       }
     } else if (msg instanceof SubscriptionRequest) {
       // Handle subscription request
@@ -220,6 +181,195 @@ public class SimpleServer extends AbstractServer {
           System.err.println("Failed to send error response: " + ioException.getMessage());
         }
       }
+    } else if (msg instanceof EmployeeManagementRequest) {
+      // Handle employee management requests
+      EmployeeManagementRequest empRequest = (EmployeeManagementRequest) msg;
+      System.out.println("Server received employee management request: " + empRequest.getRequestType());
+      
+      try {
+        EmployeeManagementResponse response = handleEmployeeManagement(empRequest);
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send employee management response: " + e.getMessage());
+      }
+    } else if (msg instanceof AccountSetupRequest) {
+      // Handle account setup request for annual subscription
+      AccountSetupRequest setupRequest = (AccountSetupRequest) msg;
+      System.out.println("Server received account setup request for: " + setupRequest.getUsername());
+      
+      try {
+        AccountSetupResponse response = subscriptionService.setupAccount(setupRequest);
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send account setup response: " + e.getMessage());
+      }
+    } else if (msg instanceof UserSubscriptionSetupRequest) {
+      // Handle subscription setup request for existing logged-in users
+      UserSubscriptionSetupRequest setupRequest = (UserSubscriptionSetupRequest) msg;
+      System.out.println("Server received subscription setup request for user ID: " + setupRequest.getUserId());
+      System.out.println("Request details: " + setupRequest.getTaxRegistrationNumber() + ", " + setupRequest.getCustomerId());
+      
+      try {
+        AccountSetupResponse response = subscriptionService.setupSubscriptionForExistingUser(setupRequest);
+        System.out.println("Subscription service returned response: " + response.isSuccess() + " - " + response.getMessage());
+        client.sendToClient(response);
+        System.out.println("Response sent to client successfully");
+      } catch (Exception e) {
+        System.err.println("Error in subscription setup: " + e.getMessage());
+        e.printStackTrace();
+        try {
+          AccountSetupResponse errorResponse = new AccountSetupResponse(false, "Server error: " + e.getMessage());
+          client.sendToClient(errorResponse);
+        } catch (IOException ioE) {
+          System.err.println("Failed to send error response: " + ioE.getMessage());
+        }
+      }
+    }
+  }
+
+  private EmployeeManagementResponse handleEmployeeManagement(EmployeeManagementRequest request) {
+    // Check if user has admin privileges
+    if (!AuthenticationService.canEditEmployeeDetails(request.getAdminUser())) {
+      return new EmployeeManagementResponse(false, "Access denied: Admin privileges required");
+    }
+
+    try {
+      switch (request.getRequestType()) {
+        case GET_ALL_EMPLOYEES:
+          return getAllEmployees();
+        
+        case GET_EMPLOYEE_BY_ID:
+          return getEmployeeById(request.getEmployeeId());
+        
+        case CREATE_EMPLOYEE:
+          return createEmployee(request.getEmployeeData());
+        
+        case UPDATE_EMPLOYEE:
+          return updateEmployee(request.getEmployeeData());
+        
+        case DELETE_EMPLOYEE:
+          return deleteEmployee(request.getEmployeeId());
+        
+        default:
+          return new EmployeeManagementResponse(false, "Unknown request type");
+      }
+    } catch (Exception e) {
+      System.err.println("Error handling employee management request: " + e.getMessage());
+      e.printStackTrace();
+      return new EmployeeManagementResponse(false, "Server error: " + e.getMessage());
+    }
+  }
+
+  private EmployeeManagementResponse getAllEmployees() {
+    try {
+      CriteriaBuilder builder = App.session.getCriteriaBuilder();
+      CriteriaQuery<Employee> query = builder.createQuery(Employee.class);
+      query.from(Employee.class);
+      List<Employee> employees = App.session.createQuery(query).getResultList();
+      
+      return new EmployeeManagementResponse(true, "Employees retrieved successfully", employees);
+    } catch (Exception e) {
+      return new EmployeeManagementResponse(false, "Failed to retrieve employees: " + e.getMessage());
+    }
+  }
+
+  private EmployeeManagementResponse getEmployeeById(int employeeId) {
+    try {
+      Employee employee = App.session.get(Employee.class, employeeId);
+      if (employee != null) {
+        return new EmployeeManagementResponse(true, "Employee found", employee);
+      } else {
+        return new EmployeeManagementResponse(false, "Employee not found");
+      }
+    } catch (Exception e) {
+      return new EmployeeManagementResponse(false, "Failed to retrieve employee: " + e.getMessage());
+    }
+  }
+
+  private EmployeeManagementResponse createEmployee(Employee employeeData) {
+    try {
+      // Register employee using AuthenticationService
+      boolean success = AuthenticationService.registerEmployee(employeeData.getUser(), employeeData);
+      
+      if (success) {
+        return new EmployeeManagementResponse(true, "Employee created successfully", employeeData);
+      } else {
+        return new EmployeeManagementResponse(false, "Failed to create employee");
+      }
+    } catch (Exception e) {
+      return new EmployeeManagementResponse(false, "Failed to create employee: " + e.getMessage());
+    }
+  }
+
+  private EmployeeManagementResponse updateEmployee(Employee employeeData) {
+    try {
+      App.session.beginTransaction();
+      
+      // Update employee data while preserving operational records
+      Employee existingEmployee = App.session.get(Employee.class, employeeData.getEmployeeId());
+      if (existingEmployee == null) {
+        App.session.getTransaction().rollback();
+        return new EmployeeManagementResponse(false, "Employee not found");
+      }
+      
+      // Update basic employee information
+      existingEmployee.setDepartment(employeeData.getDepartment());
+      existingEmployee.setPosition(employeeData.getPosition());
+      existingEmployee.setSalary(employeeData.getSalary());
+      existingEmployee.setStatus(employeeData.getStatus());
+      existingEmployee.setManagerId(employeeData.getManagerId());
+      
+      // Update user information (preserve operational records)
+      User existingUser = existingEmployee.getUser();
+      User updatedUser = employeeData.getUser();
+      
+      existingUser.setFirstName(updatedUser.getFirstName());
+      existingUser.setLastName(updatedUser.getLastName());
+      existingUser.setEmail(updatedUser.getEmail());
+      existingUser.setPhone(updatedUser.getPhone());
+      existingUser.setAddress(updatedUser.getAddress());
+      
+      // Don't update username, password, or operational records
+      
+      App.session.update(existingEmployee);
+      App.session.update(existingUser);
+      App.session.flush();
+      App.session.getTransaction().commit();
+      
+      return new EmployeeManagementResponse(true, "Employee updated successfully", existingEmployee);
+    } catch (Exception e) {
+      if (App.session.getTransaction().isActive()) {
+        App.session.getTransaction().rollback();
+      }
+      return new EmployeeManagementResponse(false, "Failed to update employee: " + e.getMessage());
+    }
+  }
+
+  private EmployeeManagementResponse deleteEmployee(int employeeId) {
+    try {
+      App.session.beginTransaction();
+      
+      Employee employee = App.session.get(Employee.class, employeeId);
+      if (employee == null) {
+        App.session.getTransaction().rollback();
+        return new EmployeeManagementResponse(false, "Employee not found");
+      }
+      
+      // Set employee status to terminated instead of deleting to preserve records
+      employee.setStatus(Employee.EmployeeStatus.TERMINATED);
+      employee.getUser().setUserType(User.UserType.CUSTOMER); // Revoke employee access
+      
+      App.session.update(employee);
+      App.session.update(employee.getUser());
+      App.session.flush();
+      App.session.getTransaction().commit();
+      
+      return new EmployeeManagementResponse(true, "Employee terminated successfully");
+    } catch (Exception e) {
+      if (App.session.getTransaction().isActive()) {
+        App.session.getTransaction().rollback();
+      }
+      return new EmployeeManagementResponse(false, "Failed to terminate employee: " + e.getMessage());
     }
   }
 

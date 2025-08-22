@@ -15,6 +15,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
+import il.cshaifasweng.OCSFMediatorExample.entities.Employee;
 
 public class App {
 
@@ -26,6 +27,7 @@ public class App {
     configuration.setProperty("hibernate.connection.password", pass);
     configuration.addAnnotatedClass(Item.class);
     configuration.addAnnotatedClass(User.class);
+    configuration.addAnnotatedClass(Employee.class);
     ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
         .applySettings(configuration.getProperties())
         .build();
@@ -75,6 +77,11 @@ public class App {
       } else {
         System.out.println("Found " + existingItems.size() + " existing items in database.");
       }
+      
+      // Initialize sample authentication data
+      System.out.println("Initializing sample authentication data...");
+      DataInitializer.initializeSampleData();
+      
     } catch (Exception exception) {
       if (session != null) {
         session.getTransaction().rollback();

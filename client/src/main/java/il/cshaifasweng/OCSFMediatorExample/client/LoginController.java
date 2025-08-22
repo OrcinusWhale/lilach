@@ -74,6 +74,7 @@ public class LoginController implements Initializable {
         }
     }
 
+
     @Subscribe
     public void onLoginResponse(LoginResponse response) {
         Platform.runLater(() -> {

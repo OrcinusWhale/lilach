@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.AdminController">
+   <top>
+      <VBox BorderPane.alignment="CENTER">
+         <children>
+            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Employee Management - Admin Panel">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+               <VBox.margin>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </VBox.margin>
+            </Label>
+            <Separator />
+         </children>
+      </VBox>
+   </top>
+   <center>
+      <HBox BorderPane.alignment="CENTER">
+         <children>
+            <VBox prefWidth="500.0">
+               <children>
+                  <Label text="Employee List">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
+                     </VBox.margin>
+                  </Label>
+                  <TableView fx:id="employeeTable" prefHeight="400.0">
+                     <columns>
+                        <TableColumn fx:id="employeeNumberColumn" prefWidth="80.0" text="Emp #" />
+                        <TableColumn fx:id="nameColumn" prefWidth="120.0" text="Name" />
+                        <TableColumn fx:id="departmentColumn" prefWidth="100.0" text="Department" />
+                        <TableColumn fx:id="positionColumn" prefWidth="100.0" text="Position" />
+                        <TableColumn fx:id="statusColumn" prefWidth="80.0" text="Status" />
+                     </columns>
+                     <VBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="5.0" />
+                     </VBox.margin>
+                  </TableView>
+                  <HBox alignment="CENTER" spacing="10.0">
+                     <children>
+                        <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" text="Refresh" />
+                        <Button mnemonicParsing="false" onAction="#handleBack" text="Back to Main" />
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="5.0" />
+                     </VBox.margin>
+                  </HBox>
+               </children>
+            </VBox>
+            <Separator orientation="VERTICAL" />
+            <VBox prefWidth="400.0">
+               <children>
+                  <Label text="Employee Details">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
+                     </VBox.margin>
+                  </Label>
+                  <ScrollPane fitToWidth="true" prefHeight="400.0">
+                     <content>
+                        <VBox spacing="10.0">
+                           <children>
+                              <VBox spacing="5.0">
+                                 <children>
+                                    <Label text="User Information">
+                                       <font>
+                                          <Font name="System Bold" size="12.0" />
+                                       </font>
+                                    </Label>
+                                    <GridPane hgap="10.0" vgap="5.0">
+                                       <columnConstraints>
+                                          <ColumnConstraints hgrow="NEVER" minWidth="80.0" />
+                                          <ColumnConstraints hgrow="ALWAYS" />
+                                       </columnConstraints>
+                                       <rowConstraints>
+                                          <RowConstraints />
+                                          <RowConstraints />
+                                          <RowConstraints />
+                                          <RowConstraints />
+                                          <RowConstraints />
+                                          <RowConstraints />
+                                       </rowConstraints>
+                                       <children>
+                                          <Label text="Username:" />
+                                          <TextField fx:id="usernameField" GridPane.columnIndex="1" />
+                                          <Label text="Password:" GridPane.rowIndex="1" />
+                                          <PasswordField fx:id="passwordField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                          <Label text="First Name:" GridPane.rowIndex="2" />
+                                          <TextField fx:id="firstNameField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                          <Label text="Last Name:" GridPane.rowIndex="3" />
+                                          <TextField fx:id="lastNameField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                          <Label text="Email:" GridPane.rowIndex="4" />
+                                          <TextField fx:id="emailField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                          <Label text="Phone:" GridPane.rowIndex="5" />
+                                          <TextField fx:id="phoneField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                                       </children>
+                                    </GridPane>
+                                    <Label text="Address:" />
+                                    <TextArea fx:id="addressField" prefRowCount="2" />
+                                 </children>
+                              </VBox>
+                              <Separator />
+                              <VBox spacing="5.0">
+                                 <children>
+                                    <Label text="Employee Information">
+                                       <font>
+                                          <Font name="System Bold" size="12.0" />
+                                       </font>
+                                    </Label>
+                                    <GridPane hgap="10.0" vgap="5.0">
+                                       <columnConstraints>
+                                          <ColumnConstraints hgrow="NEVER" minWidth="80.0" />
+                                          <ColumnConstraints hgrow="ALWAYS" />
+                                       </columnConstraints>
+                                       <rowConstraints>
+                                          <RowConstraints />
+                                          <RowConstraints />
+                                          <RowConstraints />
+                                          <RowConstraints />
+                                          <RowConstraints />
+                                       </rowConstraints>
+                                       <children>
+                                          <Label text="Emp #:" />
+                                          <TextField fx:id="employeeNumberField" GridPane.columnIndex="1" />
+                                          <Label text="Department:" GridPane.rowIndex="1" />
+                                          <TextField fx:id="departmentField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                          <Label text="Position:" GridPane.rowIndex="2" />
+                                          <TextField fx:id="positionField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                          <Label text="Salary:" GridPane.rowIndex="3" />
+                                          <TextField fx:id="salaryField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                          <Label text="Status:" GridPane.rowIndex="4" />
+                                          <ComboBox fx:id="statusComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                       </children>
+                                    </GridPane>
+                                 </children>
+                              </VBox>
+                           </children>
+                           <padding>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </padding>
+                        </VBox>
+                     </content>
+                  </ScrollPane>
+                  <HBox alignment="CENTER" spacing="10.0">
+                     <children>
+                        <Button fx:id="addEmployeeButton" mnemonicParsing="false" onAction="#handleAddEmployee" text="Add Employee" />
+                        <Button fx:id="updateEmployeeButton" disable="true" mnemonicParsing="false" onAction="#handleUpdateEmployee" text="Update Employee" />
+                        <Button fx:id="deleteEmployeeButton" disable="true" mnemonicParsing="false" onAction="#handleDeleteEmployee" text="Terminate Employee" />
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </VBox.margin>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </center>
+   <bottom>
+      <VBox BorderPane.alignment="CENTER">
+         <children>
+            <Separator />
+            <Label fx:id="statusLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="Ready">
+               <VBox.margin>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </VBox.margin>
+            </Label>
+         </children>
+      </VBox>
+   </bottom>
+</BorderPane>

@@ -40,11 +40,33 @@ public class User implements Serializable {
     private UserType userType = UserType.CUSTOMER;
     
     @Enumerated(EnumType.STRING)
+    @Column(name = "subscription_type")
     private SubscriptionType subscriptionType = SubscriptionType.NONE;
     
+    @Column(name = "subscription_start_date")
     private LocalDateTime subscriptionStartDate;
+    
+    @Column(name = "subscription_end_date")
     private LocalDateTime subscriptionEndDate;
+    
+    @Column(name = "is_subscription_active")
     private boolean isSubscriptionActive = false;
+    
+    // Account setup fields for subscription
+    @Column(name = "tax_registration_number")
+    private String taxRegistrationNumber;
+    
+    @Column(name = "customer_id")
+    private String customerId;
+    
+    @Column(name = "credit_card") // Should be encrypted in production
+    private String creditCard;
+    
+    @Column(name = "customer_name")
+    private String customerName;
+    
+    @Column(name = "account_value")
+    private double accountValue = 0.0; // Annual subscription value (100₪)
     
     @ElementCollection
     @CollectionTable(name = "user_subscription_history", joinColumns = @JoinColumn(name = "user_id"))
@@ -106,6 +128,21 @@ public class User implements Serializable {
     public List<String> getSubscriptionHistory() { return subscriptionHistory; }
     public void setSubscriptionHistory(List<String> subscriptionHistory) { this.subscriptionHistory = subscriptionHistory; }
 
+    public String getTaxRegistrationNumber() { return taxRegistrationNumber; }
+    public void setTaxRegistrationNumber(String taxRegistrationNumber) { this.taxRegistrationNumber = taxRegistrationNumber; }
+
+    public String getCustomerId() { return customerId; }
+    public void setCustomerId(String customerId) { this.customerId = customerId; }
+
+    public String getCreditCard() { return creditCard; }
+    public void setCreditCard(String creditCard) { this.creditCard = creditCard; }
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public double getAccountValue() { return accountValue; }
+    public void setAccountValue(double accountValue) { this.accountValue = accountValue; }
+
     public String getFullName() {
         return firstName + " " + lastName;
     }
@@ -119,8 +156,65 @@ public class User implements Serializable {
         subscriptionHistory.add(entry);
     }
 
+    // Authorization methods
+    public boolean isAdmin() {
+        return userType == UserType.ADMIN;
+    }
+
+    public boolean isEmployee() {
+        return userType == UserType.EMPLOYEE;
+    }
+
+    public boolean isCustomer() {
+        return userType == UserType.CUSTOMER;
+    }
+
+    public boolean canEditEmployeeDetails() {
+        return isAdmin();
+    }
+
+    public boolean canAccessAdminPanel() {
+        return isAdmin();
+    }
+
+    // Subscription-related business logic
+    public boolean hasValidAccountSetup() {
+        return taxRegistrationNumber != null && !taxRegistrationNumber.trim().isEmpty() &&
+               customerId != null && !customerId.trim().isEmpty() &&
+               creditCard != null && !creditCard.trim().isEmpty() &&
+               customerName != null && !customerName.trim().isEmpty();
+    }
+
+    public boolean canPlaceOrders() {
+        return hasValidAccountSetup() && isSubscriptionActive;
+    }
+
+    public double calculateDiscount(double purchaseAmount) {
+        if (isSubscriptionActive && purchaseAmount > 50.0) {
+            return purchaseAmount * 0.10; // 10% discount
+        }
+        return 0.0;
+    }
+
+    public double calculateFinalPrice(double originalPrice) {
+        return originalPrice - calculateDiscount(originalPrice);
+    }
+
+    public void setupAnnualSubscription(String taxRegNum, String custId, String creditCardNum, String custName) {
+        this.taxRegistrationNumber = taxRegNum;
+        this.customerId = custId;
+        this.creditCard = creditCardNum;
+        this.customerName = custName;
+        this.accountValue = 100.0; // Annual subscription value
+        this.subscriptionType = SubscriptionType.BASIC;
+        this.subscriptionStartDate = LocalDateTime.now();
+        this.subscriptionEndDate = LocalDateTime.now().plusYears(1);
+        this.isSubscriptionActive = true;
+        addSubscriptionHistoryEntry("Annual subscription activated on " + LocalDateTime.now());
+    }
+
     public enum UserType {
-        CUSTOMER, ADMIN, MANAGER
+        CUSTOMER, EMPLOYEE, ADMIN
     }
 
     public enum SubscriptionType {
