@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 
@@ -20,6 +21,9 @@ import org.greenrobot.eventbus.Subscribe;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 import il.cshaifasweng.OCSFMediatorExample.entities.UpdateItemEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.AddToCartRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.CartResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.User;
 
 public class ItemPageController {
 
@@ -96,6 +100,27 @@ public class ItemPageController {
   @FXML
   private Label saleLabel;
 
+  @FXML
+  private Button addToCartButton;
+
+  @FXML
+  private TextField quantityField;
+
+  @FXML
+  private TextArea specialRequestsArea;
+
+  @FXML
+  private Button viewCartButton;
+
+  @FXML
+  private Label addToCartLabel;
+
+  @FXML
+  private Label quantityLabel;
+
+  @FXML
+  private Label specialRequestsLabel;
+
   private File selectedImage;
 
   private FileChooser fileChooser = new FileChooser();
@@ -113,6 +138,100 @@ public class ItemPageController {
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  @FXML
+  void addToCart(ActionEvent event) {
+    User currentUser = UserSession.getCurrentUser();
+    if (currentUser == null) {
+      showError("Please log in to add items to cart");
+      return;
+    }
+
+    if (item == null) {
+      showError("Item not loaded");
+      return;
+    }
+
+    try {
+      int quantity = Integer.parseInt(quantityField.getText().trim());
+      if (quantity <= 0) {
+        showError("Please enter a valid quantity");
+        return;
+      }
+
+      String specialRequests = specialRequestsArea.getText().trim();
+      AddToCartRequest request = new AddToCartRequest(
+        currentUser.getUserId(),
+        item.getItemId(),
+        quantity,
+        specialRequests.isEmpty() ? null : specialRequests
+      );
+
+      System.out.println("ItemPageController: Sending AddToCartRequest for user " + 
+                        currentUser.getUserId() + ", item " + item.getItemId() + 
+                        ", quantity " + quantity);
+      
+      App.getClient().sendToServer(request);
+      addToCartButton.setDisable(true);
+      addToCartButton.setText("Adding...");
+
+    } catch (NumberFormatException e) {
+      showError("Please enter a valid quantity");
+    } catch (IOException e) {
+      showError("Error adding to cart: " + e.getMessage());
+    }
+  }
+
+  @FXML
+  void viewCart(ActionEvent event) {
+    try {
+      EventBus.getDefault().unregister(this);
+      App.setRoot("cart");
+    } catch (IOException e) {
+      showError("Error opening cart: " + e.getMessage());
+    }
+  }
+
+  @Subscribe
+  public void onCartResponse(CartResponse response) {
+    Platform.runLater(() -> {
+      addToCartButton.setDisable(false);
+      addToCartButton.setText("Add to Cart");
+
+      System.out.println("ItemPageController: Received CartResponse - Success: " + response.isSuccess());
+      
+      if (response.isSuccess()) {
+        showSuccess("Item added to cart successfully!");
+        quantityField.setText("1"); // Reset quantity
+        specialRequestsArea.clear(); // Clear special requests
+        
+        // The CartResponse will automatically be received by CartController
+        // due to EventBus, so no additional action needed here
+      } else {
+        showError(response.getMessage());
+      }
+    });
+  }
+
+  private void showError(String message) {
+    Platform.runLater(() -> {
+      javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+      alert.setTitle("Error");
+      alert.setHeaderText(null);
+      alert.setContentText(message);
+      alert.showAndWait();
+    });
+  }
+
+  private void showSuccess(String message) {
+    Platform.runLater(() -> {
+      javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+      alert.setTitle("Success");
+      alert.setHeaderText(null);
+      alert.setContentText(message);
+      alert.showAndWait();
+    });
   }
 
   @FXML
@@ -282,6 +401,19 @@ public class ItemPageController {
         }
         checkDeleteBtn.setDisable(false);
         checkDeleteBtn.setVisible(true);
+        
+        // Show cart functionality for customers (including all customer types)
+        User currentUser = UserSession.getCurrentUser();
+        if (currentUser != null && (currentUser.isCustomer() || currentUser.isStoreSpecific() || currentUser.isBrandUser())) {
+          addToCartButton.setVisible(true);
+          addToCartButton.setDisable(false);
+          quantityField.setVisible(true);
+          specialRequestsArea.setVisible(true);
+          viewCartButton.setVisible(true);
+          if (addToCartLabel != null) addToCartLabel.setVisible(true);
+          if (quantityLabel != null) quantityLabel.setVisible(true);
+          if (specialRequestsLabel != null) specialRequestsLabel.setVisible(true);
+        }
         byte[] image = item.getImage();
         if (image != null) {
           imageView.setImage(new Image(new ByteArrayInputStream(image)));
@@ -298,6 +430,32 @@ public class ItemPageController {
     fileChooser.setTitle("Choose image");
     fileChooser.getExtensionFilters().addAll(
         new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif", "*.bmp"));
+    
+    // Initialize cart components
+    if (quantityField != null) {
+      quantityField.setText("1");
+    }
+    
+    // Show cart functionality for logged in customers
+    User currentUser = UserSession.getCurrentUser();
+    if (currentUser != null && (currentUser.isCustomer() || currentUser.isStoreSpecific() || currentUser.isBrandUser())) {
+      if (addToCartButton != null) addToCartButton.setVisible(true);
+      if (quantityField != null) quantityField.setVisible(true);
+      if (specialRequestsArea != null) specialRequestsArea.setVisible(true);
+      if (viewCartButton != null) viewCartButton.setVisible(true);
+      if (addToCartLabel != null) addToCartLabel.setVisible(true);
+      if (quantityLabel != null) quantityLabel.setVisible(true);
+      if (specialRequestsLabel != null) specialRequestsLabel.setVisible(true);
+    } else {
+      // Hide cart functionality for non-customers
+      if (addToCartButton != null) addToCartButton.setVisible(false);
+      if (quantityField != null) quantityField.setVisible(false);
+      if (specialRequestsArea != null) specialRequestsArea.setVisible(false);
+      if (viewCartButton != null) viewCartButton.setVisible(false);
+      if (addToCartLabel != null) addToCartLabel.setVisible(false);
+      if (quantityLabel != null) quantityLabel.setVisible(false);
+      if (specialRequestsLabel != null) specialRequestsLabel.setVisible(false);
+    }
   }
 
   public void setItemId(String itemId) {

@@ -17,6 +17,10 @@ import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
 import il.cshaifasweng.OCSFMediatorExample.entities.Employee;
 import il.cshaifasweng.OCSFMediatorExample.entities.Store;
+import il.cshaifasweng.OCSFMediatorExample.entities.Order;
+import il.cshaifasweng.OCSFMediatorExample.entities.OrderItem;
+import il.cshaifasweng.OCSFMediatorExample.entities.Cart;
+import il.cshaifasweng.OCSFMediatorExample.entities.CartItem;
 
 public class App {
 
@@ -30,6 +34,10 @@ public class App {
     configuration.addAnnotatedClass(User.class);
     configuration.addAnnotatedClass(Employee.class);
     configuration.addAnnotatedClass(Store.class);
+    configuration.addAnnotatedClass(Order.class);
+    configuration.addAnnotatedClass(OrderItem.class);
+    configuration.addAnnotatedClass(Cart.class);
+    configuration.addAnnotatedClass(CartItem.class);
     ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
         .applySettings(configuration.getProperties())
         .build();

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="720.0" prefWidth="900.0" spacing="20.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CartController">
+   <children>
+      <Label alignment="CENTER" prefHeight="50.0" prefWidth="900.0" text="Shopping Cart">
+         <font>
+            <Font size="32.0" />
+         </font>
+      </Label>
+      
+      <HBox alignment="CENTER_LEFT" spacing="20.0">
+         <children>
+            <Button fx:id="backButton" mnemonicParsing="false" onAction="#goBack" style="-fx-background-color: #6c757d; -fx-text-fill: white;" text="Back to Catalogue" />
+            <Label fx:id="itemCountLabel" text="0 items">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+         </children>
+      </HBox>
+      
+      <Label fx:id="emptyCartLabel" alignment="CENTER" prefHeight="200.0" prefWidth="900.0" text="Your cart is empty" visible="false">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      
+      <TableView fx:id="cartTable" prefHeight="350.0" prefWidth="900.0">
+        <columns>
+          <TableColumn fx:id="itemNameColumn" prefWidth="200.0" text="Item" />
+          <TableColumn fx:id="quantityColumn" prefWidth="100.0" text="Quantity" />
+          <TableColumn fx:id="priceColumn" prefWidth="100.0" text="Price" />
+          <TableColumn fx:id="subtotalColumn" prefWidth="120.0" text="Subtotal" />
+          <TableColumn fx:id="actionsColumn" prefWidth="260.0" text="Actions" />
+        </columns>
+      </TableView>
+      
+      <VBox alignment="CENTER_RIGHT" spacing="10.0">
+         <children>
+            <HBox alignment="CENTER_RIGHT" spacing="10.0">
+               <children>
+                  <Label text="Total Amount:">
+                     <font>
+                        <Font size="16.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="totalAmountLabel" text="0.00">
+                     <font>
+                        <Font size="16.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+            
+            <HBox alignment="CENTER_RIGHT" spacing="10.0">
+               <children>
+                  <Label text="Discount:">
+                     <font>
+                        <Font size="16.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="discountAmountLabel" text="0.00" textFill="#28a745">
+                     <font>
+                        <Font size="16.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+            
+            <HBox alignment="CENTER_RIGHT" spacing="10.0">
+               <children>
+                  <Label text="Final Amount:">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="finalAmountLabel" text="0.00">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      
+      <HBox alignment="CENTER" spacing="20.0">
+         <children>
+            <Button fx:id="clearCartButton" disable="true" mnemonicParsing="false" onAction="#clearCart" style="-fx-background-color: #dc3545; -fx-text-fill: white;" text="Clear Cart" />
+            <Button fx:id="checkoutButton" disable="true" mnemonicParsing="false" onAction="#proceedToCheckout" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-size: 16px;" text="Proceed to Checkout" />
+         </children>
+      </HBox>
+   </children>
+   <padding>
+      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+   </padding>
+</VBox>

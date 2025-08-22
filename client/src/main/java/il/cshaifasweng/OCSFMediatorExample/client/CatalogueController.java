@@ -42,6 +42,9 @@ public class CatalogueController {
   @FXML
   private Button backBtn;
 
+  @FXML
+  private Button cartBtn;
+
   private List<Parent> itemEntries = new ArrayList<>();
 
   private List<Item> items = new ArrayList<>();
@@ -117,6 +120,16 @@ public class CatalogueController {
     try {
       EventBus.getDefault().unregister(this);
       App.setRoot("userDetails");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @FXML
+  void viewCart(ActionEvent event) {
+    try {
+      EventBus.getDefault().unregister(this);
+      App.setRoot("cart");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
