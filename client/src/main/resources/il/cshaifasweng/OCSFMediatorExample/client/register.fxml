@@ -5,6 +5,9 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.GridPane?>
@@ -45,8 +48,46 @@
                   
                   <Label text="Address:" GridPane.columnIndex="0" GridPane.rowIndex="6" />
                   <TextField fx:id="addressField" promptText="Your address" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                  
+                  <Label text="User Type:" GridPane.columnIndex="0" GridPane.rowIndex="7" />
+                  <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                     <children>
+                        <RadioButton fx:id="brandUserRadio" text="Brand User (Can shop at all stores)" selected="true">
+                           <toggleGroup>
+                              <ToggleGroup fx:id="userTypeGroup" />
+                           </toggleGroup>
+                        </RadioButton>
+                        <RadioButton fx:id="storeSpecificRadio" text="Store-Specific User" toggleGroup="$userTypeGroup" />
+                     </children>
+                  </VBox>
+                  
+                  <Label fx:id="storeLabel" text="Select Store:" GridPane.columnIndex="0" GridPane.rowIndex="8" visible="false" />
+                  <ComboBox fx:id="storeComboBox" promptText="Choose your store" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="8" visible="false" />
                </children>
             </GridPane>
+            
+            <!-- Subscription Setup Panel for Brand Users -->
+            <VBox fx:id="subscriptionPanel" spacing="10.0" style="-fx-background-color: #e8f5e8; -fx-background-radius: 5; -fx-padding: 15;" visible="true">
+               <children>
+                  <Label text="Annual Subscription Setup (100₪)" style="-fx-font-weight: bold; -fx-text-fill: #2E8B57;" />
+                  <GridPane hgap="10.0" vgap="8.0">
+                     <children>
+                        <Label text="Tax Registration Number:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                        <TextField fx:id="taxRegField" promptText="Enter tax registration number" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                        
+                        <Label text="Customer ID:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                        <TextField fx:id="customerIdField" promptText="Enter customer ID" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        
+                        <Label text="Credit Card:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                        <TextField fx:id="creditCardField" promptText="Enter credit card number" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        
+                        <Label text="Customer Name:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                        <TextField fx:id="customerNameField" promptText="Full name for subscription" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                     </children>
+                  </GridPane>
+                  <Label text="Benefits: Shop at all stores • 10% discount on purchases above 50₪" style="-fx-text-fill: #666; -fx-font-size: 11;" />
+               </children>
+            </VBox>
             
             <Label fx:id="errorLabel" textFill="RED" visible="false" />
             

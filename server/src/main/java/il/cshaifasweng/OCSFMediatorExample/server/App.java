@@ -16,6 +16,7 @@ import org.hibernate.service.ServiceRegistry;
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
 import il.cshaifasweng.OCSFMediatorExample.entities.Employee;
+import il.cshaifasweng.OCSFMediatorExample.entities.Store;
 
 public class App {
 
@@ -28,6 +29,7 @@ public class App {
     configuration.addAnnotatedClass(Item.class);
     configuration.addAnnotatedClass(User.class);
     configuration.addAnnotatedClass(Employee.class);
+    configuration.addAnnotatedClass(Store.class);
     ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
         .applySettings(configuration.getProperties())
         .build();

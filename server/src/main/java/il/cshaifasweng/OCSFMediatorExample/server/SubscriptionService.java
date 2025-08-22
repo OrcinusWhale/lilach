@@ -22,11 +22,20 @@ public class SubscriptionService {
     }
     
     /**
-     * Sets up a new customer account with annual subscription
+     * Sets up a new customer account with support for both brand users and store-specific users
      */
     public AccountSetupResponse setupAccount(AccountSetupRequest request) {
         if (!request.isValid()) {
-            return new AccountSetupResponse(false, "Invalid account setup data. All fields are required.");
+            return new AccountSetupResponse(false, "Invalid account setup data. Please check all required fields.");
+        }
+        
+        // Validate user type specific requirements
+        if (request.isBrandUser() && (request.getTaxRegistrationNumber() == null || request.getCustomerId() == null)) {
+            return new AccountSetupResponse(false, "Brand users must provide subscription details.");
+        }
+        
+        if (request.isStoreSpecific() && request.getStoreId() == null) {
+            return new AccountSetupResponse(false, "Store-specific users must select a store.");
         }
         
         Session session = sessionFactory.openSession();
@@ -53,7 +62,7 @@ public class SubscriptionService {
                 return new AccountSetupResponse(false, "Email already registered. Please use a different email.");
             }
             
-            // Create new user with subscription
+            // Create new user
             User newUser = new User(
                 request.getUsername(),
                 AuthenticationService.hashPassword(request.getPassword()), // Hash password using existing service
@@ -64,21 +73,44 @@ public class SubscriptionService {
                 request.getAddress()
             );
             
-            // Setup annual subscription
-            newUser.setupAnnualSubscription(
-                request.getTaxRegistrationNumber(),
-                request.getCustomerId(),
-                request.getCreditCard(),
-                request.getCustomerName()
-            );
+            // Set user type
+            newUser.setUserType(request.getUserType());
+            
+            // Handle store association for store-specific users
+            if (request.isStoreSpecific()) {
+                Store store = session.get(Store.class, request.getStoreId());
+                if (store == null) {
+                    return new AccountSetupResponse(false, "Selected store not found.");
+                }
+                newUser.setStore(store);
+            }
+            
+            // Setup annual subscription only for brand users
+            if (request.isBrandUser()) {
+                newUser.setupAnnualSubscription(
+                    request.getTaxRegistrationNumber(),
+                    request.getCustomerId(),
+                    request.getCreditCard(),
+                    request.getCustomerName()
+                );
+            }
             
             session.save(newUser);
             transaction.commit();
             
-            return new AccountSetupResponse(true, 
-                "Account successfully created with annual subscription (100₪). You are now authorized to place orders with 10% discount on purchases above 50₪.", 
-                newUser, 
-                ANNUAL_SUBSCRIPTION_VALUE);
+            // Create appropriate response message
+            String message;
+            double subscriptionValue = 0.0;
+            
+            if (request.isBrandUser()) {
+                message = "Brand user account successfully created with annual subscription (100₪). You can shop at all stores with 10% discount on purchases above 50₪.";
+                subscriptionValue = ANNUAL_SUBSCRIPTION_VALUE;
+            } else {
+                Store userStore = newUser.getStore();
+                message = "Store-specific user account successfully created for " + userStore.getStoreName() + ". You can place orders at your assigned store without subscription.";
+            }
+            
+            return new AccountSetupResponse(true, message, newUser, subscriptionValue);
                 
         } catch (Exception e) {
             if (transaction != null) {

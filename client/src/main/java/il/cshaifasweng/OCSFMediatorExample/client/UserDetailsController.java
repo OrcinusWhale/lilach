@@ -10,6 +10,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
+import il.cshaifasweng.OCSFMediatorExample.entities.Store;
 import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.UserSubscriptionSetupRequest;
@@ -60,6 +61,9 @@ public class UserDetailsController implements Initializable {
     private Button browseCatalogueButton;
 
     @FXML
+    private VBox subscriptionPanel;
+
+    @FXML
     private VBox subscriptionBenefitsPanel;
 
     @FXML
@@ -67,6 +71,15 @@ public class UserDetailsController implements Initializable {
 
     @FXML
     private Label userRoleLabel;
+
+    @FXML
+    private Label userTypeLabel;
+
+    @FXML
+    private Label storeInfoLabel;
+
+    @FXML
+    private Label storeNameLabel;
 
     // Annual subscription setup fields
     @FXML
@@ -112,10 +125,39 @@ public class UserDetailsController implements Initializable {
             // Display user role
             userRoleLabel.setText("Role: " + currentUser.getUserType().toString());
             
+            // Display user type and store information
+            displayUserTypeAndStore(currentUser);
+            
             // Configure role-based access
             configureRoleBasedAccess(currentUser);
             
             updateSubscriptionStatus(currentUser);
+        }
+    }
+
+    private void displayUserTypeAndStore(User user) {
+        // Display user type
+        if (user.isBrandUser()) {
+            userTypeLabel.setText("Brand User");
+            userTypeLabel.setTextFill(javafx.scene.paint.Color.BLUE);
+            // Hide store information for brand users
+            storeInfoLabel.setVisible(false);
+            storeNameLabel.setVisible(false);
+        } else if (user.isStoreSpecific()) {
+            userTypeLabel.setText("Store-Specific User");
+            userTypeLabel.setTextFill(javafx.scene.paint.Color.PURPLE);
+            // Show store information for store-specific users
+            if (user.getStore() != null) {
+                storeInfoLabel.setVisible(true);
+                storeNameLabel.setVisible(true);
+                storeNameLabel.setText(user.getStore().getStoreName());
+            }
+        } else {
+            // Legacy user types (CUSTOMER, EMPLOYEE, ADMIN)
+            userTypeLabel.setText("Legacy User");
+            userTypeLabel.setTextFill(javafx.scene.paint.Color.GRAY);
+            storeInfoLabel.setVisible(false);
+            storeNameLabel.setVisible(false);
         }
     }
 
@@ -127,17 +169,62 @@ public class UserDetailsController implements Initializable {
         }
         
         // Configure subscription panel visibility based on user type
-        if (user.isEmployee() || user.isAdmin()) {
-            // Employees and admins don't need subscription setup
-            if (subscriptionSetupPanel != null) {
-                subscriptionSetupPanel.setVisible(false);
-                subscriptionSetupPanel.setManaged(false);
+        configureSubscriptionPanelVisibility(user);
+    }
+
+    private void configureSubscriptionPanelVisibility(User user) {
+        if (user.isStoreSpecific()) {
+            // Store-specific users: Hide entire subscription panel
+            if (subscriptionPanel != null) {
+                subscriptionPanel.setVisible(false);
+                subscriptionPanel.setManaged(false);
+            }
+        } else if (user.isBrandUser()) {
+            // Brand users: Show subscription panel
+            if (subscriptionPanel != null) {
+                subscriptionPanel.setVisible(true);
+                subscriptionPanel.setManaged(true);
+            }
+            
+            if (user.isSubscriptionActive()) {
+                // Subscribed brand users: Hide setup form, show active subscription info
+                if (subscriptionSetupPanel != null) {
+                    subscriptionSetupPanel.setVisible(false);
+                    subscriptionSetupPanel.setManaged(false);
+                }
+                if (subscriptionBenefitsPanel != null) {
+                    subscriptionBenefitsPanel.setVisible(true);
+                    subscriptionBenefitsPanel.setManaged(true);
+                }
+            } else {
+                // Unsubscribed brand users: Show setup form, hide benefits
+                if (subscriptionSetupPanel != null) {
+                    subscriptionSetupPanel.setVisible(true);
+                    subscriptionSetupPanel.setManaged(true);
+                }
+                if (subscriptionBenefitsPanel != null) {
+                    subscriptionBenefitsPanel.setVisible(false);
+                    subscriptionBenefitsPanel.setManaged(false);
+                }
             }
         } else {
-            // Only customers can setup subscriptions
-            if (subscriptionSetupPanel != null && !user.isSubscriptionActive()) {
-                subscriptionSetupPanel.setVisible(true);
-                subscriptionSetupPanel.setManaged(true);
+            // Legacy users (CUSTOMER, EMPLOYEE, ADMIN): Keep existing behavior
+            if (user.isEmployee() || user.isAdmin()) {
+                // Employees and admins don't need subscription setup
+                if (subscriptionPanel != null) {
+                    subscriptionPanel.setVisible(false);
+                    subscriptionPanel.setManaged(false);
+                }
+            } else {
+                // Legacy customers can setup subscriptions
+                if (subscriptionPanel != null) {
+                    subscriptionPanel.setVisible(true);
+                    subscriptionPanel.setManaged(true);
+                }
+                if (subscriptionSetupPanel != null && !user.isSubscriptionActive()) {
+                    subscriptionSetupPanel.setVisible(true);
+                    subscriptionSetupPanel.setManaged(true);
+                }
             }
         }
     }

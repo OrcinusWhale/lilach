@@ -49,6 +49,10 @@ public class User implements Serializable {
     @Column(name = "subscription_end_date")
     private LocalDateTime subscriptionEndDate;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
+    private Store store;
+    
     @Column(name = "is_subscription_active")
     private boolean isSubscriptionActive = false;
     
@@ -122,6 +126,9 @@ public class User implements Serializable {
     public LocalDateTime getSubscriptionEndDate() { return subscriptionEndDate; }
     public void setSubscriptionEndDate(LocalDateTime subscriptionEndDate) { this.subscriptionEndDate = subscriptionEndDate; }
 
+    public Store getStore() { return store; }
+    public void setStore(Store store) { this.store = store; }
+
     public boolean isSubscriptionActive() { return isSubscriptionActive; }
     public void setSubscriptionActive(boolean subscriptionActive) { isSubscriptionActive = subscriptionActive; }
 
@@ -148,8 +155,8 @@ public class User implements Serializable {
     }
 
     public boolean canRequestSubscription() {
-        // Business logic: users can request subscription if they don't have an active one
-        return !isSubscriptionActive;
+        // Only brand users can request subscriptions
+        return isBrandUser() && !isSubscriptionActive;
     }
 
     public void addSubscriptionHistoryEntry(String entry) {
@@ -186,7 +193,10 @@ public class User implements Serializable {
     }
 
     public boolean canPlaceOrders() {
-        return hasValidAccountSetup() && isSubscriptionActive;
+        if (isStoreSpecific()) {
+            return true; // Store-specific users can always place orders
+        }
+        return isBrandUser() && hasValidAccountSetup() && isSubscriptionActive;
     }
 
     public double calculateDiscount(double purchaseAmount) {
@@ -201,6 +211,9 @@ public class User implements Serializable {
     }
 
     public void setupAnnualSubscription(String taxRegNum, String custId, String creditCardNum, String custName) {
+        if (!isBrandUser()) {
+            throw new IllegalStateException("Only brand users can setup annual subscriptions");
+        }
         this.taxRegistrationNumber = taxRegNum;
         this.customerId = custId;
         this.creditCard = creditCardNum;
@@ -213,8 +226,17 @@ public class User implements Serializable {
         addSubscriptionHistoryEntry("Annual subscription activated on " + LocalDateTime.now());
     }
 
+    // Business logic methods for store-specific and brand users
+    public boolean isStoreSpecific() {
+        return userType == UserType.STORE_SPECIFIC;
+    }
+    
+    public boolean isBrandUser() {
+        return userType == UserType.BRAND_USER;
+    }
+
     public enum UserType {
-        CUSTOMER, EMPLOYEE, ADMIN
+        CUSTOMER, EMPLOYEE, ADMIN, STORE_SPECIFIC, BRAND_USER
     }
 
     public enum SubscriptionType {

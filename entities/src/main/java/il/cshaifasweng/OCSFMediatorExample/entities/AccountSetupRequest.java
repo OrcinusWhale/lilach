@@ -16,6 +16,8 @@ public class AccountSetupRequest implements Serializable {
     private String email;
     private String phone;
     private String address;
+    private User.UserType userType;
+    private Integer storeId;
     
     public AccountSetupRequest() {}
     
@@ -69,18 +71,49 @@ public class AccountSetupRequest implements Serializable {
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
     
+    public User.UserType getUserType() { return userType; }
+    public void setUserType(User.UserType userType) { this.userType = userType; }
+    
+    public Integer getStoreId() { return storeId; }
+    public void setStoreId(Integer storeId) { this.storeId = storeId; }
+    
+    // Helper methods
+    public boolean isBrandUser() {
+        return userType == User.UserType.BRAND_USER;
+    }
+    
+    public boolean isStoreSpecific() {
+        return userType == User.UserType.STORE_SPECIFIC;
+    }
+    
     // Validation method
     public boolean isValid() {
-        return username != null && !username.trim().isEmpty() &&
-               password != null && !password.trim().isEmpty() &&
-               taxRegistrationNumber != null && !taxRegistrationNumber.trim().isEmpty() &&
-               customerId != null && !customerId.trim().isEmpty() &&
-               creditCard != null && !creditCard.trim().isEmpty() &&
-               customerName != null && !customerName.trim().isEmpty() &&
-               firstName != null && !firstName.trim().isEmpty() &&
-               lastName != null && !lastName.trim().isEmpty() &&
-               email != null && !email.trim().isEmpty() &&
-               phone != null && !phone.trim().isEmpty() &&
-               address != null && !address.trim().isEmpty();
+        // Basic fields required for all users
+        boolean basicValid = username != null && !username.trim().isEmpty() &&
+                           password != null && !password.trim().isEmpty() &&
+                           firstName != null && !firstName.trim().isEmpty() &&
+                           lastName != null && !lastName.trim().isEmpty() &&
+                           email != null && !email.trim().isEmpty() &&
+                           phone != null && !phone.trim().isEmpty() &&
+                           address != null && !address.trim().isEmpty() &&
+                           userType != null;
+        
+        if (!basicValid) {
+            return false;
+        }
+        
+        // Additional validation based on user type
+        if (isBrandUser()) {
+            // Brand users must provide subscription details
+            return taxRegistrationNumber != null && !taxRegistrationNumber.trim().isEmpty() &&
+                   customerId != null && !customerId.trim().isEmpty() &&
+                   creditCard != null && !creditCard.trim().isEmpty() &&
+                   customerName != null && !customerName.trim().isEmpty();
+        } else if (isStoreSpecific()) {
+            // Store-specific users must select a store
+            return storeId != null;
+        }
+        
+        return true;
     }
 }

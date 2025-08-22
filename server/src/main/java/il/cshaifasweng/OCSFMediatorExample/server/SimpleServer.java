@@ -15,6 +15,8 @@ import il.cshaifasweng.OCSFMediatorExample.entities.EmployeeManagementResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.AccountSetupRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.AccountSetupResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.UserSubscriptionSetupRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.StoreListRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.StoreListResponse;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -35,11 +37,16 @@ import org.hibernate.HibernateException;
 public class SimpleServer extends AbstractServer {
   private static final ArrayList<SubscribedClient> SubscribersList = new ArrayList<>();
   private SubscriptionService subscriptionService;
+  private StoreService storeService;
 
   public SimpleServer(int port) {
     super(port);
     // Initialize SubscriptionService with session instead of sessionFactory
     this.subscriptionService = new SubscriptionService(App.session.getSessionFactory());
+    // Initialize StoreService
+    this.storeService = new StoreService(App.session);
+    // Initialize default stores
+    this.storeService.initializeDefaultStores();
   }
 
   @Override
@@ -202,6 +209,15 @@ public class SimpleServer extends AbstractServer {
         client.sendToClient(response);
       } catch (IOException e) {
         System.err.println("Failed to send account setup response: " + e.getMessage());
+      }
+    } else if (msg instanceof StoreListRequest) {
+      // Handle store list request
+      System.out.println("Server received store list request");
+      try {
+        StoreListResponse response = storeService.getAllStores();
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send store list response: " + e.getMessage());
       }
     } else if (msg instanceof UserSubscriptionSetupRequest) {
       // Handle subscription setup request for existing logged-in users
