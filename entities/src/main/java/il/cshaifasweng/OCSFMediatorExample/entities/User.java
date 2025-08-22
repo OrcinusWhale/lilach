@@ -196,7 +196,10 @@ public class User implements Serializable {
         if (isStoreSpecific()) {
             return true; // Store-specific users can always place orders
         }
-        return isBrandUser() && hasValidAccountSetup() && isSubscriptionActive;
+        if (isBrandUser()) {
+            return hasValidAccountSetup() && isSubscriptionActive; // Brand users need subscription
+        }
+        return isCustomer(); // Regular customers can always place orders
     }
 
     public double calculateDiscount(double purchaseAmount) {

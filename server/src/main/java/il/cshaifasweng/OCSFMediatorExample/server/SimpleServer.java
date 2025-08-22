@@ -17,6 +17,10 @@ import il.cshaifasweng.OCSFMediatorExample.entities.AccountSetupResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.UserSubscriptionSetupRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.StoreListRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.StoreListResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.AddToCartRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.CartResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.CreateOrderRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.OrderResponse;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -38,6 +42,7 @@ public class SimpleServer extends AbstractServer {
   private static final ArrayList<SubscribedClient> SubscribersList = new ArrayList<>();
   private SubscriptionService subscriptionService;
   private StoreService storeService;
+  private OrderService orderService;
 
   public SimpleServer(int port) {
     super(port);
@@ -47,13 +52,16 @@ public class SimpleServer extends AbstractServer {
     this.storeService = new StoreService(App.session);
     // Initialize default stores
     this.storeService.initializeDefaultStores();
+    // Initialize OrderService
+    this.orderService = new OrderService(App.session.getSessionFactory());
   }
 
   @Override
   protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
+    System.out.println("Server received message: " + msg + " (Type: " + msg.getClass().getSimpleName() + ")");
     if (msg instanceof String) {
       String msgString = (String) msg;
-      System.out.println(msg);
+      System.out.println("Processing string message: '" + msgString + "'");
       if (msgString.equals("catalogue")) {
         CriteriaBuilder builder = App.session.getCriteriaBuilder();
         CriteriaQuery<Item> query = builder.createQuery(Item.class);
@@ -67,7 +75,8 @@ public class SimpleServer extends AbstractServer {
         } catch (IOException e) {
           e.printStackTrace();
         }
-      } else if (msgString.startsWith("get")) {
+      } else if (msgString.startsWith("get ") && !msgString.startsWith("getCart ")) {
+        // Handle get item request (but not getCart)
         Item item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1]));
         item.loadImage();
         try {
@@ -93,6 +102,45 @@ public class SimpleServer extends AbstractServer {
         SubscribersList.add(new SubscribedClient(client));
       } else if (msgString.equals("remove")) {
         SubscribersList.removeIf(subscribedClient -> subscribedClient.getClient().equals(client));
+      } else if (msgString.startsWith("getCart ")) {
+        // Handle get cart request
+        System.out.println("Processing getCart string: '" + msgString + "'");
+        int userId = Integer.parseInt(msgString.split(" ")[1]);
+        System.out.println("Server received get cart request for user ID: " + userId);
+        
+        try {
+          CartResponse response = orderService.getCart(userId);
+          System.out.println("Server sending cart response - Success: " + response.isSuccess() + 
+                           ", Items: " + (response.getCartItems() != null ? response.getCartItems().size() : 0));
+          client.sendToClient(response);
+        } catch (IOException e) {
+          System.err.println("Failed to send cart response: " + e.getMessage());
+        }
+      } else if (msgString.startsWith("updateCart ")) {
+        // Handle update cart item quantity request
+        String[] parts = msgString.split(" ");
+        int userId = Integer.parseInt(parts[1]);
+        int itemId = Integer.parseInt(parts[2]);
+        int quantity = Integer.parseInt(parts[3]);
+        System.out.println("Server received update cart request for user ID: " + userId);
+        
+        try {
+          CartResponse response = orderService.updateCartItemQuantity(userId, itemId, quantity);
+          client.sendToClient(response);
+        } catch (IOException e) {
+          System.err.println("Failed to send cart response: " + e.getMessage());
+        }
+      } else if (msgString.startsWith("clearCart ")) {
+        // Handle clear cart request
+        int userId = Integer.parseInt(msgString.split(" ")[1]);
+        System.out.println("Server received clear cart request for user ID: " + userId);
+        
+        try {
+          CartResponse response = orderService.clearCart(userId);
+          client.sendToClient(response);
+        } catch (IOException e) {
+          System.err.println("Failed to send cart response: " + e.getMessage());
+        }
       }
     } else if (msg instanceof Item) {
       Item item = (Item) msg;
@@ -239,6 +287,29 @@ public class SimpleServer extends AbstractServer {
         } catch (IOException ioE) {
           System.err.println("Failed to send error response: " + ioE.getMessage());
         }
+      }
+    } else if (msg instanceof AddToCartRequest) {
+      // Handle add to cart request
+      AddToCartRequest cartRequest = (AddToCartRequest) msg;
+      System.out.println("Server received add to cart request for user ID: " + cartRequest.getUserId());
+      
+      try {
+        CartResponse response = orderService.addToCart(cartRequest);
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send cart response: " + e.getMessage());
+      }
+    // Cart handlers moved inside the String block above
+    } else if (msg instanceof CreateOrderRequest) {
+      // Handle create order request
+      CreateOrderRequest orderRequest = (CreateOrderRequest) msg;
+      System.out.println("Server received create order request for user ID: " + orderRequest.getUserId());
+      
+      try {
+        OrderResponse response = orderService.createOrder(orderRequest);
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send order response: " + e.getMessage());
       }
     }
   }

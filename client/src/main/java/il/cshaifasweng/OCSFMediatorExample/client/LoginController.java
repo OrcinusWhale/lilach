@@ -36,8 +36,6 @@ public class LoginController implements Initializable {
     @FXML
     private Label errorLabel;
 
-    private static User currentUser;
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         EventBus.getDefault().register(this);
@@ -82,7 +80,7 @@ public class LoginController implements Initializable {
             loginButton.setText("Login");
 
             if (response.isSuccess()) {
-                currentUser = response.getUser();
+                UserSession.setCurrentUser(response.getUser());
                 hideError();
                 try {
                     App.setRoot("userDetails");
@@ -106,10 +104,10 @@ public class LoginController implements Initializable {
     }
 
     public static User getCurrentUser() {
-        return currentUser;
+        return UserSession.getCurrentUser();
     }
 
     public static void setCurrentUser(User user) {
-        currentUser = user;
+        UserSession.setCurrentUser(user);
     }
 }

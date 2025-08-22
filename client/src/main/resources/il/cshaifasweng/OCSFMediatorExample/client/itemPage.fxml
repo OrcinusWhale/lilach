@@ -3,6 +3,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -69,5 +70,19 @@
             <Font size="20.0" />
          </font>
       </Label>
+      
+      <!-- Cart Functionality Section -->
+      <Label fx:id="addToCartLabel" layoutX="14.0" layoutY="340.0" text="Add to Cart:" visible="true">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="quantityLabel" layoutX="14.0" layoutY="370.0" text="Quantity:" visible="true" />
+      <TextField fx:id="quantityField" layoutX="80.0" layoutY="366.0" prefWidth="60.0" text="1" visible="true" />
+      <Label fx:id="specialRequestsLabel" layoutX="14.0" layoutY="400.0" text="Special Requests:" visible="true" />
+      <TextArea fx:id="specialRequestsArea" layoutX="14.0" layoutY="420.0" prefHeight="60.0" prefWidth="300.0" promptText="Any special requests for this item..." wrapText="true" visible="true" />
+      <Button fx:id="addToCartButton" layoutX="14.0" layoutY="490.0" mnemonicParsing="false" onAction="#addToCart" style="-fx-background-color: #28a745; -fx-text-fill: white;" text="Add to Cart" visible="true" />
+      <Button fx:id="viewCartButton" layoutX="120.0" layoutY="490.0" mnemonicParsing="false" onAction="#viewCart" style="-fx-background-color: #007bff; -fx-text-fill: white;" text="View Cart" visible="true" />
+      
    </children>
 </AnchorPane>
