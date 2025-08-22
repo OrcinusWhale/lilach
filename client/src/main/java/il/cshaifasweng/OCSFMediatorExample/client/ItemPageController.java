@@ -108,8 +108,8 @@ public class ItemPageController {
   void backToCatalogue(ActionEvent event) {
     EventBus.getDefault().unregister(this);
     try {
+      // Don't send catalogue request here - let CatalogueController handle it
       App.setRoot("catalogue");
-      SimpleClient.getClient().sendToServer("catalogue");
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -198,7 +198,7 @@ public class ItemPageController {
       item.setType(type);
     }
     try {
-      SimpleClient.getClient().sendToServer(item);
+      App.getClient().sendToServer(item);
       toggleEdit(event);
     } catch (IOException e) {
       e.printStackTrace();
@@ -238,7 +238,7 @@ public class ItemPageController {
   @FXML
   void deleteItem(ActionEvent event) {
     try {
-      SimpleClient.getClient().sendToServer("delete " + itemId);
+      App.getClient().sendToServer("delete " + itemId);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -258,14 +258,18 @@ public class ItemPageController {
         int salePrice = item.getSalePrice();
         priceLabel.setText("Price: " + item.getPrice() + "$");
         priceLabel.setVisible(true);
-        if (salePrice != -1) {
+        
+        // Clear any previous styling first
+        priceLabel.getStyleClass().remove("strikethrough");
+        saleLabel.setVisible(false);
+        
+        // Only show sale if there's actually a valid sale price (not -1 and different from regular price)
+        if (salePrice > 0 && salePrice != item.getPrice()) {
           priceLabel.getStyleClass().add("strikethrough");
           saleLabel.setText("SALE: " + salePrice + "$");
           saleLabel.setVisible(true);
           saleTF.setPromptText("" + salePrice);
         } else {
-          priceLabel.getStyleClass().remove("strikethrough");
-          saleLabel.setVisible(false);
           saleTF.setPromptText("");
         }
         priceTF.setPromptText("" + item.getPrice());

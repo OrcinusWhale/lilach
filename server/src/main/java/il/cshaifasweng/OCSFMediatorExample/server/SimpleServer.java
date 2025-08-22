@@ -4,6 +4,11 @@ import il.cshaifasweng.OCSFMediatorExample.entities.AddResponseEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.CatalogueEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.NewItemEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.UpdateItemEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.User;
+import il.cshaifasweng.OCSFMediatorExample.entities.LoginRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.LoginResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionResponse;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -113,6 +118,107 @@ public class SimpleServer extends AbstractServer {
         client.sendToClient(new AddResponseEvent("add success"));
       } catch (Exception e) {
         e.printStackTrace();
+      }
+    } else if (msg instanceof User) {
+      // Handle user registration
+      User newUser = (User) msg;
+      System.out.println("Server received user registration request for: " + newUser.getUsername());
+      
+      try {
+        // Check if user already exists
+        CriteriaBuilder builder = App.session.getCriteriaBuilder();
+        CriteriaQuery<User> query = builder.createQuery(User.class);
+        query.from(User.class);
+        List<User> existingUsers = App.session.createQuery(query).getResultList();
+        
+        boolean userExists = existingUsers.stream()
+            .anyMatch(user -> user.getUsername().equals(newUser.getUsername()));
+        
+        if (userExists) {
+          System.out.println("Registration failed: User already exists");
+          client.sendToClient(new LoginResponse(false, "Username already exists", null));
+        } else {
+          // Save new user
+          App.session.beginTransaction();
+          App.session.save(newUser);
+          App.session.flush();
+          App.session.getTransaction().commit();
+          System.out.println("User registered successfully: " + newUser.getUsername());
+          client.sendToClient(new LoginResponse(true, "Registration successful", null));
+        }
+      } catch (Exception e) {
+        System.err.println("Error during user registration: " + e.getMessage());
+        e.printStackTrace();
+        try {
+          client.sendToClient(new LoginResponse(false, "Registration failed: Server error", null));
+        } catch (IOException ioException) {
+          System.err.println("Failed to send error response: " + ioException.getMessage());
+        }
+      }
+    } else if (msg instanceof LoginRequest) {
+      // Handle login request
+      LoginRequest loginRequest = (LoginRequest) msg;
+      System.out.println("Server received login request for: " + loginRequest.getUsername());
+      
+      try {
+        // Find user in database
+        CriteriaBuilder builder = App.session.getCriteriaBuilder();
+        CriteriaQuery<User> query = builder.createQuery(User.class);
+        query.from(User.class);
+        List<User> users = App.session.createQuery(query).getResultList();
+        
+        User foundUser = users.stream()
+            .filter(user -> user.getUsername().equals(loginRequest.getUsername()) 
+                         && user.getPassword().equals(loginRequest.getPassword()))
+            .findFirst()
+            .orElse(null);
+        
+        if (foundUser != null) {
+          System.out.println("Login successful for: " + foundUser.getUsername());
+          client.sendToClient(new LoginResponse(true, "Login successful", foundUser));
+        } else {
+          System.out.println("Login failed: Invalid credentials");
+          client.sendToClient(new LoginResponse(false, "Invalid username or password", null));
+        }
+      } catch (Exception e) {
+        System.err.println("Error during login: " + e.getMessage());
+        e.printStackTrace();
+        try {
+          client.sendToClient(new LoginResponse(false, "Login failed: Server error", null));
+        } catch (IOException ioException) {
+          System.err.println("Failed to send error response: " + ioException.getMessage());
+        }
+      }
+    } else if (msg instanceof SubscriptionRequest) {
+      // Handle subscription request
+      SubscriptionRequest subscriptionRequest = (SubscriptionRequest) msg;
+      System.out.println("Server received subscription request from user ID: " + subscriptionRequest.getUserId());
+      
+      try {
+        // Find user and update subscription
+        User user = App.session.get(User.class, subscriptionRequest.getUserId());
+        if (user != null) {
+          user.setSubscriptionType(subscriptionRequest.getRequestedSubscriptionType());
+          
+          App.session.beginTransaction();
+          App.session.update(user);
+          App.session.flush();
+          App.session.getTransaction().commit();
+          
+          System.out.println("Subscription approved for user: " + user.getUsername());
+          client.sendToClient(new SubscriptionResponse(true, "Subscription request approved", user.getSubscriptionType()));
+        } else {
+          System.out.println("Subscription failed: User not found");
+          client.sendToClient(new SubscriptionResponse(false, "User not found", null));
+        }
+      } catch (Exception e) {
+        System.err.println("Error during subscription request: " + e.getMessage());
+        e.printStackTrace();
+        try {
+          client.sendToClient(new SubscriptionResponse(false, "Subscription failed: Server error", null));
+        } catch (IOException ioException) {
+          System.err.println("Failed to send error response: " + ioException.getMessage());
+        }
       }
     }
   }

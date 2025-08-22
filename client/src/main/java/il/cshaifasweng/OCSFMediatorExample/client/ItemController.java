@@ -37,12 +37,21 @@ public class ItemController {
   @FXML
   void loadItem(MouseEvent event) {
     try {
+      System.out.println("ItemController.loadItem() called for item ID: " + itemId);
+      if (itemId == null || itemId.isEmpty()) {
+        System.err.println("ERROR: itemId is null or empty!");
+        return;
+      }
+      
       EventBus.getDefault().post(new UnsubscribeEvent());
       App.setRoot("itemPage");
       ItemPageController controller = App.getFxmlLoader().getController();
       controller.setItemId(itemId);
-      SimpleClient.getClient().sendToServer("get " + itemId);
+      System.out.println("Sending get request to server for item ID: " + itemId);
+      App.getClient().sendToServer("get " + itemId);
+      System.out.println("Get request sent successfully");
     } catch (IOException e) {
+      System.err.println("Error in loadItem(): " + e.getMessage());
       e.printStackTrace();
     }
   }
@@ -68,14 +77,18 @@ public class ItemController {
     nameLabel.setText(item.getName());
     priceLabel.setText(item.getPrice() + "$");
     int sale = item.getSalePrice();
-    if (sale == -1) {
-      saleLabel.setVisible(false);
-      priceLabel.getStyleClass().remove("strikethrough");
-    } else {
+    
+    // Clear any previous styling first
+    priceLabel.getStyleClass().remove("strikethrough");
+    saleLabel.setVisible(false);
+    
+    // Only show sale if there's actually a valid sale price (not -1 and not 0)
+    if (sale > 0 && sale != item.getPrice()) {
       saleLabel.setText(sale + "$");
       saleLabel.setVisible(true);
       priceLabel.getStyleClass().add("strikethrough");
     }
+    
     typeLabel.setText(item.getType());
     byte[] image = item.getImage();
     if (image != null) {
