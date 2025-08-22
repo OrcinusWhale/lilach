@@ -19,6 +19,7 @@ public class SimpleClient extends AbstractClient {
 
   @Override
   protected void handleMessageFromServer(Object msg) {
+    System.out.println("Client received message from server: " + msg.getClass().getSimpleName());
     EventBus.getDefault().post(msg);
   }
 

@@ -117,7 +117,7 @@ public class AddController {
             item.setImageFile(null);
         }
         try {
-            SimpleClient.getClient().sendToServer(item);
+            App.getClient().sendToServer(item);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -127,8 +127,8 @@ public class AddController {
     void backToCatalogue(ActionEvent event) {
         EventBus.getDefault().unregister(this);
         try {
+            // Don't send catalogue request here - let CatalogueController handle it
             App.setRoot("catalogue");
-            SimpleClient.getClient().sendToServer("catalogue");
         } catch (IOException e) {
             e.printStackTrace();
         }

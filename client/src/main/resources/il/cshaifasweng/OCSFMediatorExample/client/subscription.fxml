@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.SubscriptionController">
+   <content>
+      <VBox alignment="CENTER" prefHeight="800.0" prefWidth="500.0" spacing="15.0">
+         <children>
+            <Label text="Annual Subscription Setup">
+               <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+            </Label>
+            
+            <Label fx:id="infoLabel" alignment="CENTER" style="-fx-background-color: #e8f5e8; -fx-padding: 10; -fx-border-color: #4CAF50; -fx-border-radius: 5;" text="Annual Subscription (100₪)" textAlignment="CENTER" wrapText="true">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </Label>
+            
+            <Separator />
+            
+            <Label text="Account Information">
+               <font>
+                  <Font name="System Bold" size="16.0" />
+               </font>
+            </Label>
+            
+            <HBox spacing="10.0">
+               <children>
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Username:" />
+                        <TextField fx:id="usernameField" promptText="Enter username" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Password:" />
+                        <PasswordField fx:id="passwordField" promptText="Enter password" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            
+            <HBox spacing="10.0">
+               <children>
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="First Name:" />
+                        <TextField fx:id="firstNameField" promptText="Enter first name" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Last Name:" />
+                        <TextField fx:id="lastNameField" promptText="Enter last name" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            
+            <VBox spacing="5.0">
+               <children>
+                  <Label text="Email:" />
+                  <TextField fx:id="emailField" promptText="Enter email address" />
+               </children>
+            </VBox>
+            
+            <HBox spacing="10.0">
+               <children>
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Phone:" />
+                        <TextField fx:id="phoneField" promptText="Enter phone number" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Address:" />
+                        <TextField fx:id="addressField" promptText="Enter address" />
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+            
+            <Separator />
+            
+            <Label text="Subscription Details">
+               <font>
+                  <Font name="System Bold" size="16.0" />
+               </font>
+            </Label>
+            
+            <HBox spacing="10.0">
+               <children>
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Tax Registration Number:" />
+                        <TextField fx:id="taxRegistrationField" promptText="Enter tax registration number" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Customer ID:" />
+                        <TextField fx:id="customerIdField" promptText="Enter customer ID" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            
+            <VBox spacing="5.0">
+               <children>
+                  <Label text="Credit Card Number:" />
+                  <TextField fx:id="creditCardField" promptText="Enter credit card number" />
+               </children>
+            </VBox>
+            
+            <VBox spacing="5.0">
+               <children>
+                  <Label text="Customer Name:" />
+                  <TextField fx:id="customerNameField" promptText="Enter customer name as on card" />
+               </children>
+            </VBox>
+            
+            <Label fx:id="errorLabel" style="-fx-text-fill: red;" visible="false" />
+            
+            <HBox alignment="CENTER" spacing="20.0">
+               <children>
+                  <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBack" text="Back to Login" />
+                  <Button fx:id="subscribeButton" mnemonicParsing="false" onAction="#handleSubscribe" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="Subscribe (100₪)">
+                     <font>
+                        <Font name="System Bold" size="12.0" />
+                     </font>
+                  </Button>
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+         </padding>
+      </VBox>
+   </content>
+</ScrollPane>

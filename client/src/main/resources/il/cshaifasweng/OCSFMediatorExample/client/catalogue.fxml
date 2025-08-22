@@ -22,9 +22,14 @@
                   <Font size="24.0" />
                </font>
             </Label>
+            <Button fx:id="backBtn" mnemonicParsing="false" onAction="#goBack" style="-fx-background-color: #6c757d; -fx-text-fill: white;" text="← Back to Profile">
+               <FlowPane.margin>
+                  <Insets right="20.0" />
+               </FlowPane.margin>
+            </Button>
             <Button fx:id="addBtn" disable="true" mnemonicParsing="false" onAction="#addItem" text="Add item">
                <FlowPane.margin>
-                  <Insets right="600.0" />
+                  <Insets right="480.0" />
                </FlowPane.margin>
             </Button>
             <Label text="Category:" />

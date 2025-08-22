@@ -39,20 +39,27 @@ public class CatalogueController {
   @FXML
   private ChoiceBox<String> storeBox;
 
+  @FXML
+  private Button backBtn;
+
   private List<Parent> itemEntries = new ArrayList<>();
 
   private List<Item> items = new ArrayList<>();
 
   @Subscribe
   public void displayItems(CatalogueEvent event) {
+    System.out.println("Client received CatalogueEvent");
     List<Item> items = event.getItems();
+    System.out.println("CatalogueEvent contains " + items.size() + " items");
     this.items = items;
     Platform.runLater(() -> {
       cataloguePane.getChildren().remove(loadingLabel);
       for (Item item : items) {
+        System.out.println("Loading item: " + item.getName());
         loadItem(item);
       }
       addBtn.setDisable(false);
+      System.out.println("Catalogue display completed");
     });
   }
 
@@ -105,6 +112,16 @@ public class CatalogueController {
     }
   }
 
+  @FXML
+  void goBack(ActionEvent event) {
+    try {
+      EventBus.getDefault().unregister(this);
+      App.setRoot("userDetails");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @Subscribe
   public void unsubscribe(UnsubscribeEvent event) {
     EventBus.getDefault().unregister(this);
@@ -117,5 +134,18 @@ public class CatalogueController {
     categoryBox.setValue("All");
     storeBox.getItems().add("All");
     storeBox.setValue("All");
+    
+    // Request catalogue data from server
+    try {
+      System.out.println("Client sending catalogue request to server");
+      App.getClient().sendToServer("catalogue");
+      System.out.println("Catalogue request sent successfully");
+    } catch (IOException e) {
+      System.err.println("Error sending catalogue request: " + e.getMessage());
+      e.printStackTrace();
+      Platform.runLater(() -> {
+        loadingLabel.setText("Error loading catalogue");
+      });
+    }
   }
 }
