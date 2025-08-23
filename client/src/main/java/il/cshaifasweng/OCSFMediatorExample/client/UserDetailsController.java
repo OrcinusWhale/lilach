@@ -353,12 +353,12 @@ public class UserDetailsController implements Initializable {
 
     @FXML
     void handleLogout(ActionEvent event) {
-        LoginController.setCurrentUser(null);
-        try {
-            App.setRoot("login");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Logout requested by user");
+        
+        // Use SessionService to properly terminate server session
+        SessionService.getInstance().logout();
+        
+        // Note: SessionService will handle navigation to login screen after server response
     }
 
     @FXML

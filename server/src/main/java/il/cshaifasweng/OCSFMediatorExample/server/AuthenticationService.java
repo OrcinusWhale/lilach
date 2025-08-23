@@ -4,6 +4,7 @@ import il.cshaifasweng.OCSFMediatorExample.entities.User;
 import il.cshaifasweng.OCSFMediatorExample.entities.Employee;
 import il.cshaifasweng.OCSFMediatorExample.entities.LoginRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.LoginResponse;
+import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -20,13 +21,10 @@ public class AuthenticationService {
     private static final String HASH_ALGORITHM = "SHA-256";
     private static final int SALT_LENGTH = 16;
     
-    // Session management
-    private static final ConcurrentMap<String, User> activeSessions = new ConcurrentHashMap<>();
-    
     /**
-     * Authenticate user with username and password
+     * Authenticate user with username and password with session management
      */
-    public static LoginResponse authenticateUser(LoginRequest loginRequest) {
+    public static LoginResponse authenticateUser(LoginRequest loginRequest, ConnectionToClient connection) {
         try {
             System.out.println("Authenticating user: " + loginRequest.getUsername());
             
@@ -48,14 +46,24 @@ public class AuthenticationService {
             
             // Verify password
             if (verifyPassword(loginRequest.getPassword(), user.getPassword())) {
-                // Create session
-                String sessionId = generateSessionId();
-                activeSessions.put(sessionId, user);
+                // Check if user already has an active session
+                if (SessionManager.hasActiveSession(user.getUserId())) {
+                    System.out.println("Login denied: User " + user.getUsername() + " already has an active session");
+                    return new LoginResponse(false, "SESSION_CONFLICT: User already logged in from another location. Please logout from other session first.");
+                }
+                
+                // Create new session
+                SessionManager.SessionInfo sessionInfo = SessionManager.createSession(user.getUserId(), connection);
+                if (sessionInfo == null) {
+                    return new LoginResponse(false, "Failed to create session. Please try again.");
+                }
                 
                 // Don't send password in response
                 User safeUser = createSafeUserCopy(user);
                 
-                System.out.println("Login successful for: " + user.getUsername() + " (Role: " + user.getUserType() + ")");
+                System.out.println("Login successful for: " + user.getUsername() + " (Role: " + user.getUserType() + 
+                                 ") with session: " + sessionInfo.getSessionId());
+                
                 return new LoginResponse(true, "Login successful", safeUser);
             } else {
                 System.out.println("Password verification failed for user: " + user.getUsername());
@@ -67,6 +75,13 @@ public class AuthenticationService {
             e.printStackTrace();
             return new LoginResponse(false, "Authentication failed: Server error", null);
         }
+    }
+    
+    /**
+     * Backward compatibility method for authentication without connection
+     */
+    public static LoginResponse authenticateUser(LoginRequest loginRequest) {
+        return new LoginResponse(false, "Connection required for session management");
     }
     
     /**
@@ -283,33 +298,30 @@ public class AuthenticationService {
     }
     
     /**
-     * Generate session ID
+     * Logout user by terminating their session
      */
-    private static String generateSessionId() {
-        SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[32];
-        random.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    public static boolean logoutUser(int userId) {
+        return SessionManager.terminateSession(userId);
     }
     
     /**
-     * Get user by session ID
+     * Validate if a session is still active and belongs to the user
      */
-    public static User getUserBySession(String sessionId) {
-        return activeSessions.get(sessionId);
+    public static boolean validateSession(String sessionId, int userId) {
+        return SessionManager.isSessionValid(sessionId, userId);
     }
     
     /**
-     * Invalidate session
-     */
-    public static void invalidateSession(String sessionId) {
-        activeSessions.remove(sessionId);
-    }
-    
-    /**
-     * Get all active sessions count
+     * Get all active sessions count (delegates to SessionManager)
      */
     public static int getActiveSessionsCount() {
-        return activeSessions.size();
+        return SessionManager.getActiveSessionCount();
+    }
+    
+    /**
+     * Clean up session when client disconnects
+     */
+    public static boolean cleanupSession(ConnectionToClient connection) {
+        return SessionManager.cleanupConnectionSession(connection);
     }
 }
