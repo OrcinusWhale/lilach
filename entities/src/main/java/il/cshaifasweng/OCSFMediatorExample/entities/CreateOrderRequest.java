@@ -11,6 +11,8 @@ public class CreateOrderRequest implements Serializable {
     private String orderType; // "DELIVERY" or "PICKUP"
     private LocalDateTime requestedDeliveryDate;
     private String deliveryAddress;
+    private String recipientName;
+    private String recipientPhone;
     private String greetingCardMessage;
     private String specialInstructions;
     private String createdVia; // "WEB" or "IN_STORE"
@@ -43,6 +45,12 @@ public class CreateOrderRequest implements Serializable {
 
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+
+    public String getRecipientName() { return recipientName; }
+    public void setRecipientName(String recipientName) { this.recipientName = recipientName; }
+
+    public String getRecipientPhone() { return recipientPhone; }
+    public void setRecipientPhone(String recipientPhone) { this.recipientPhone = recipientPhone; }
 
     public String getGreetingCardMessage() { return greetingCardMessage; }
     public void setGreetingCardMessage(String greetingCardMessage) { 

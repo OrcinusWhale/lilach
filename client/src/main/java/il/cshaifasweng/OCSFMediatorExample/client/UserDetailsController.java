@@ -61,6 +61,9 @@ public class UserDetailsController implements Initializable {
     private Button browseCatalogueButton;
 
     @FXML
+    private Button viewOrdersButton;
+
+    @FXML
     private VBox subscriptionPanel;
 
     @FXML
@@ -365,6 +368,30 @@ public class UserDetailsController implements Initializable {
             App.setRoot("catalogue");
         } catch (IOException e) {
             showMessage("Error loading catalogue", false);
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    void handleViewOrders(ActionEvent event) {
+        try {
+            User currentUser = LoginController.getCurrentUser();
+            if (currentUser == null) {
+                showMessage("Please log in to view your orders", false);
+                return;
+            }
+            
+            System.out.println("View Orders requested for user: " + currentUser.getUsername());
+            
+            // Navigate to order history page
+            EventBus.getDefault().unregister(this);
+            App.setRoot("orderHistory");
+            
+        } catch (IOException e) {
+            showMessage("Error loading order history: " + e.getMessage(), false);
+            e.printStackTrace();
+        } catch (Exception e) {
+            showMessage("Error loading order history: " + e.getMessage(), false);
             e.printStackTrace();
         }
     }

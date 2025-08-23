@@ -81,6 +81,7 @@
                   <VBox spacing="10.0">
                      <children>
                         <Button fx:id="browseCatalogueButton" onAction="#handleBrowseCatalogue" prefWidth="200.0" style="-fx-background-color: #2E8B57; -fx-text-fill: white;" text="Browse Catalogue" />
+                        <Button fx:id="viewOrdersButton" onAction="#handleViewOrders" prefWidth="200.0" style="-fx-background-color: #4169E1; -fx-text-fill: white;" text="View My Orders" />
                         <Button fx:id="adminPanelButton" onAction="#handleAdminPanel" prefWidth="200.0" style="-fx-background-color: #dc3545; -fx-text-fill: white;" text="Admin Panel" visible="false" managed="false" />
                      </children>
                   </VBox>

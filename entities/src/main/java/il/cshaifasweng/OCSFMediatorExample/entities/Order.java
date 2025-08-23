@@ -44,6 +44,15 @@ public class Order implements Serializable {
     @Column(name = "delivery_address")
     private String deliveryAddress;
 
+    @Column(name = "recipient_name")
+    private String recipientName;
+
+    @Column(name = "recipient_phone")
+    private String recipientPhone;
+
+    @Column(name = "delivery_fee")
+    private double deliveryFee = 0.0;
+
     @Column(name = "greeting_card_message", length = 500)
     private String greetingCardMessage;
 
@@ -108,6 +117,15 @@ public class Order implements Serializable {
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
 
+    public String getRecipientName() { return recipientName; }
+    public void setRecipientName(String recipientName) { this.recipientName = recipientName; }
+
+    public String getRecipientPhone() { return recipientPhone; }
+    public void setRecipientPhone(String recipientPhone) { this.recipientPhone = recipientPhone; }
+
+    public double getDeliveryFee() { return deliveryFee; }
+    public void setDeliveryFee(double deliveryFee) { this.deliveryFee = deliveryFee; }
+
     public String getGreetingCardMessage() { return greetingCardMessage; }
     public void setGreetingCardMessage(String greetingCardMessage) { 
         this.greetingCardMessage = greetingCardMessage;
@@ -155,7 +173,7 @@ public class Order implements Serializable {
             this.discountAmount = user.calculateDiscount(this.totalAmount);
         }
         
-        this.finalAmount = this.totalAmount - this.discountAmount;
+        this.finalAmount = this.totalAmount - this.discountAmount + this.deliveryFee;
     }
 
     public boolean isDelivery() {

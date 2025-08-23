@@ -289,11 +289,30 @@ public class OrderService {
             Order.OrderType orderType = Order.OrderType.valueOf(request.getOrderType().toUpperCase());
             Order order = new Order(user, store, orderType, request.getRequestedDeliveryDate(), request.getCreatedVia());
 
-            // Set optional fields
-            if (request.getDeliveryAddress() != null && !request.getDeliveryAddress().trim().isEmpty()) {
-                order.setDeliveryAddress(request.getDeliveryAddress());
-            } else if (orderType == Order.OrderType.DELIVERY) {
-                order.setDeliveryAddress(user.getAddress()); // Use user's default address
+            // Set delivery details
+            if (orderType == Order.OrderType.DELIVERY) {
+                // Set delivery fee
+                order.setDeliveryFee(15.0); // Fixed delivery fee
+                
+                // Set delivery address
+                if (request.getDeliveryAddress() != null && !request.getDeliveryAddress().trim().isEmpty()) {
+                    order.setDeliveryAddress(request.getDeliveryAddress());
+                } else {
+                    order.setDeliveryAddress(user.getAddress()); // Use user's default address
+                }
+                
+                // Set recipient details
+                if (request.getRecipientName() != null && !request.getRecipientName().trim().isEmpty()) {
+                    order.setRecipientName(request.getRecipientName());
+                } else {
+                    order.setRecipientName(user.getFullName()); // Use user's name as default
+                }
+                
+                if (request.getRecipientPhone() != null && !request.getRecipientPhone().trim().isEmpty()) {
+                    order.setRecipientPhone(request.getRecipientPhone());
+                } else {
+                    order.setRecipientPhone(user.getPhone()); // Use user's phone as default
+                }
             }
 
             if (request.getGreetingCardMessage() != null && !request.getGreetingCardMessage().trim().isEmpty()) {
@@ -406,6 +425,31 @@ public class OrderService {
             System.err.println("Error retrieving cart: " + e.getMessage());
             e.printStackTrace();
             return null;
+        }
+    }
+
+    // Order History Methods
+    public OrderHistoryResponse getUserOrderHistory(int userId) {
+        Session session = sessionFactory.openSession();
+        
+        try {
+            // Query orders for the user, ordered by date descending (newest first)
+            Query<Order> query = session.createQuery(
+                "FROM Order o LEFT JOIN FETCH o.orderItems oi LEFT JOIN FETCH oi.item LEFT JOIN FETCH o.store " +
+                "WHERE o.user.userId = :userId ORDER BY o.orderDate DESC", Order.class);
+            query.setParameter("userId", userId);
+            List<Order> orders = query.list();
+            
+            System.out.println("OrderService: Found " + orders.size() + " orders for user " + userId);
+            
+            return new OrderHistoryResponse(orders);
+            
+        } catch (Exception e) {
+            System.err.println("Error retrieving order history for user " + userId + ": " + e.getMessage());
+            e.printStackTrace();
+            return new OrderHistoryResponse("Failed to retrieve order history: " + e.getMessage());
+        } finally {
+            session.close();
         }
     }
 }

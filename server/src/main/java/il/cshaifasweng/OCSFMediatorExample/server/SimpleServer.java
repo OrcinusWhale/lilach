@@ -21,6 +21,8 @@ import il.cshaifasweng.OCSFMediatorExample.entities.AddToCartRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.CartResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.CreateOrderRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.OrderResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.OrderHistoryRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.OrderHistoryResponse;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -310,6 +312,17 @@ public class SimpleServer extends AbstractServer {
         client.sendToClient(response);
       } catch (IOException e) {
         System.err.println("Failed to send order response: " + e.getMessage());
+      }
+    } else if (msg instanceof OrderHistoryRequest) {
+      // Handle order history request
+      OrderHistoryRequest historyRequest = (OrderHistoryRequest) msg;
+      System.out.println("Server received order history request for user ID: " + historyRequest.getUserId());
+      
+      try {
+        OrderHistoryResponse response = orderService.getUserOrderHistory(historyRequest.getUserId());
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send order history response: " + e.getMessage());
       }
     }
   }
