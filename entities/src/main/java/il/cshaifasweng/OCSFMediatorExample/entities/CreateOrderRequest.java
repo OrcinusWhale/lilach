@@ -16,6 +16,7 @@ public class CreateOrderRequest implements Serializable {
     private String greetingCardMessage;
     private String specialInstructions;
     private String createdVia; // "WEB" or "IN_STORE"
+    private String orderPriority; // "IMMEDIATE" or "SCHEDULED"
 
     public CreateOrderRequest() {}
 
@@ -64,4 +65,7 @@ public class CreateOrderRequest implements Serializable {
 
     public String getCreatedVia() { return createdVia; }
     public void setCreatedVia(String createdVia) { this.createdVia = createdVia; }
+
+    public String getOrderPriority() { return orderPriority; }
+    public void setOrderPriority(String orderPriority) { this.orderPriority = orderPriority; }
 }

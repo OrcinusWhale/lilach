@@ -7,6 +7,7 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class OrderService {
@@ -323,6 +324,20 @@ public class OrderService {
                 order.setSpecialInstructions(request.getSpecialInstructions());
             }
 
+            // Set order priority
+            if (request.getOrderPriority() != null && !request.getOrderPriority().trim().isEmpty()) {
+                try {
+                    Order.OrderPriority priority = Order.OrderPriority.valueOf(request.getOrderPriority().toUpperCase());
+                    order.setOrderPriority(priority);
+                } catch (IllegalArgumentException e) {
+                    // Default to SCHEDULED if invalid priority provided
+                    order.setOrderPriority(Order.OrderPriority.SCHEDULED);
+                }
+            } else {
+                // Default to SCHEDULED if no priority specified
+                order.setOrderPriority(Order.OrderPriority.SCHEDULED);
+            }
+
             // Convert cart items to order items
             for (CartItem cartItem : cart.getCartItems()) {
                 OrderItem orderItem = new OrderItem(order, cartItem.getItem(), cartItem.getQuantity(), cartItem.getSpecialRequests());
@@ -428,6 +443,85 @@ public class OrderService {
         }
     }
 
+    // Order Cancellation Methods
+    public OrderCancellationResponse cancelOrder(OrderCancellationRequest request) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            System.out.println("OrderService: Starting cancellation for Order ID: " + request.getOrderId() + ", User ID: " + request.getUserId());
+
+            // Get the order
+            Order order = session.get(Order.class, request.getOrderId());
+            if (order == null) {
+                System.out.println("OrderService: Order not found - ID: " + request.getOrderId());
+                return new OrderCancellationResponse(false, "Order not found");
+            }
+
+            System.out.println("OrderService: Found order - ID: " + order.getOrderId() + ", Current Status: " + order.getOrderStatus());
+
+            // Verify that the user owns this order
+            if (order.getUser().getUserId() != request.getUserId()) {
+                System.out.println("OrderService: Authorization failed - Order User ID: " + order.getUser().getUserId() + ", Request User ID: " + request.getUserId());
+                return new OrderCancellationResponse(false, "You are not authorized to cancel this order");
+            }
+
+            // Check if the order can be cancelled
+            if (!order.canBeCancelled()) {
+                System.out.println("OrderService: Order cannot be cancelled - Status: " + order.getOrderStatus());
+                return new OrderCancellationResponse(false, "Order cannot be cancelled. Current status: " + order.getOrderStatus());
+            }
+
+            // Calculate refund based on time before delivery
+            LocalDateTime currentTime = LocalDateTime.now();
+            LocalDateTime deliveryTime = order.getRequestedDeliveryDate();
+            long hoursUntilDelivery = ChronoUnit.HOURS.between(currentTime, deliveryTime);
+
+            int refundPercentage;
+            String refundPolicy;
+            
+            if (hoursUntilDelivery >= 3) {
+                refundPercentage = 100;
+                refundPolicy = "Full refund (≥ 3 hours before delivery)";
+            } else if (hoursUntilDelivery >= 1) {
+                refundPercentage = 50;
+                refundPolicy = "50% refund (1-3 hours before delivery)";
+            } else {
+                refundPercentage = 0;
+                refundPolicy = "No refund (< 1 hour before delivery)";
+            }
+
+            double refundAmount = (order.getFinalAmount() * refundPercentage) / 100.0;
+
+            // Update order status to CANCELLED
+            System.out.println("OrderService: Changing order status from " + order.getOrderStatus() + " to CANCELLED");
+            order.setOrderStatus(Order.OrderStatus.CANCELLED);
+            session.saveOrUpdate(order);
+            session.flush(); // Force immediate write to database
+            
+            System.out.println("OrderService: Order status after update: " + order.getOrderStatus());
+            System.out.println("OrderService: Committing transaction...");
+            transaction.commit();
+            System.out.println("OrderService: Transaction committed successfully");
+
+            String message = String.format("Order #%d has been cancelled successfully. %s - Refund amount: $%.2f", 
+                    order.getOrderId(), refundPolicy, refundAmount);
+
+            System.out.println("OrderService: " + message);
+
+            return new OrderCancellationResponse(true, message, order.getOrderId(), refundAmount, refundPercentage);
+
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            System.err.println("Error cancelling order: " + e.getMessage());
+            e.printStackTrace();
+            return new OrderCancellationResponse(false, "Error cancelling order: " + e.getMessage());
+        } finally {
+            session.close();
+        }
+    }
+
     // Order History Methods
     public OrderHistoryResponse getUserOrderHistory(int userId) {
         Session session = sessionFactory.openSession();
@@ -448,6 +542,43 @@ public class OrderService {
             System.err.println("Error retrieving order history for user " + userId + ": " + e.getMessage());
             e.printStackTrace();
             return new OrderHistoryResponse("Failed to retrieve order history: " + e.getMessage());
+        } finally {
+            session.close();
+        }
+    }
+
+    // Order Details Method
+    public OrderDetailsResponse getOrderDetails(OrderDetailsRequest request) {
+        Session session = sessionFactory.openSession();
+        
+        try {
+            // Get order with all related entities loaded
+            Query<Order> query = session.createQuery(
+                "SELECT o FROM Order o " +
+                "LEFT JOIN FETCH o.user " +
+                "LEFT JOIN FETCH o.store " +
+                "LEFT JOIN FETCH o.orderItems oi " +
+                "LEFT JOIN FETCH oi.item " +
+                "WHERE o.orderId = :orderId", Order.class);
+            
+            query.setParameter("orderId", request.getOrderId());
+            Order order = query.uniqueResult();
+            
+            if (order == null) {
+                return new OrderDetailsResponse(false, "Order not found");
+            }
+            
+            // Verify user has access to this order
+            if (order.getUser().getUserId() != request.getUserId()) {
+                return new OrderDetailsResponse(false, "Access denied: Order does not belong to this user");
+            }
+            
+            return new OrderDetailsResponse(true, "Order details retrieved successfully", order);
+            
+        } catch (Exception e) {
+            System.err.println("Error retrieving order details: " + e.getMessage());
+            e.printStackTrace();
+            return new OrderDetailsResponse(false, "Error retrieving order details: " + e.getMessage());
         } finally {
             session.close();
         }

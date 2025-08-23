@@ -44,6 +44,12 @@ public class CheckoutController implements Initializable {
     private ComboBox<String> deliveryTimeComboBox;
 
     @FXML
+    private ComboBox<String> orderPriorityComboBox;
+
+    @FXML
+    private Label orderPriorityDescriptionLabel;
+
+    @FXML
     private TextField deliveryAddressField;
 
     @FXML
@@ -111,6 +117,11 @@ public class CheckoutController implements Initializable {
         ));
         deliveryTimeComboBox.setValue("12:00");
 
+        // Setup order priority options
+        orderPriorityComboBox.setItems(FXCollections.observableArrayList("IMMEDIATE", "SCHEDULED"));
+        orderPriorityComboBox.setValue("SCHEDULED");
+        orderPriorityComboBox.setOnAction(e -> updatePriorityDescription());
+
         // Set minimum date to tomorrow
         deliveryDatePicker.setValue(java.time.LocalDate.now().plusDays(1));
 
@@ -120,6 +131,20 @@ public class CheckoutController implements Initializable {
         }
 
         updateDeliveryFields();
+        updatePriorityDescription();
+    }
+
+    private void updatePriorityDescription() {
+        String selectedPriority = orderPriorityComboBox.getValue();
+        if ("IMMEDIATE".equals(selectedPriority)) {
+            orderPriorityDescriptionLabel.setText("⚡ IMMEDIATE: Must be delivered within 3 hours");
+            orderPriorityDescriptionLabel.setStyle("-fx-text-fill: #DC143C; -fx-font-size: 12px; -fx-font-weight: bold;");
+        } else if ("SCHEDULED".equals(selectedPriority)) {
+            orderPriorityDescriptionLabel.setText("📅 SCHEDULED: Guaranteed delivery at your requested time");
+            orderPriorityDescriptionLabel.setStyle("-fx-text-fill: #008B8B; -fx-font-size: 12px; -fx-font-weight: bold;");
+        } else {
+            orderPriorityDescriptionLabel.setText("");
+        }
     }
 
     private void updateDeliveryFields() {
@@ -251,6 +276,11 @@ public class CheckoutController implements Initializable {
             return false;
         }
 
+        if (orderPriorityComboBox.getValue() == null) {
+            showError("Please select an order priority");
+            return false;
+        }
+
         if ("DELIVERY".equals(orderTypeComboBox.getValue())) {
             if (deliveryAddressField.getText() == null || deliveryAddressField.getText().trim().isEmpty()) {
                 showError("Please enter a delivery address");
@@ -275,6 +305,22 @@ public class CheckoutController implements Initializable {
         if (requestedDateTime.isBefore(LocalDateTime.now())) {
             showError("Delivery date and time must be in the future");
             return false;
+        }
+
+        // Validate IMMEDIATE order timing
+        if ("IMMEDIATE".equals(orderPriorityComboBox.getValue())) {
+            LocalDateTime threeHoursFromNow = LocalDateTime.now().plusHours(3);
+            if (requestedDateTime.isAfter(threeHoursFromNow)) {
+                showError("IMMEDIATE orders must be delivered within 3 hours. Please select an earlier time or choose SCHEDULED priority.");
+                return false;
+            }
+            
+            // Ensure minimum 30 minutes for preparation
+            LocalDateTime minimumTime = LocalDateTime.now().plusMinutes(30);
+            if (requestedDateTime.isBefore(minimumTime)) {
+                showError("Please allow at least 30 minutes for order preparation.");
+                return false;
+            }
         }
 
         return true;
@@ -309,6 +355,9 @@ public class CheckoutController implements Initializable {
         if (instructions != null && !instructions.trim().isEmpty()) {
             request.setSpecialInstructions(instructions.trim());
         }
+
+        // Set order priority
+        request.setOrderPriority(orderPriorityComboBox.getValue());
 
         return request;
     }

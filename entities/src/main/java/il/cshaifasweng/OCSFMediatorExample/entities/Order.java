@@ -41,6 +41,10 @@ public class Order implements Serializable {
     @Column(name = "order_status", nullable = false)
     private OrderStatus orderStatus = OrderStatus.PENDING;
 
+    @Convert(converter = OrderPriorityConverter.class)
+    @Column(name = "order_priority")
+    private OrderPriority orderPriority;
+
     @Column(name = "delivery_address")
     private String deliveryAddress;
 
@@ -77,6 +81,7 @@ public class Order implements Serializable {
     // Default constructor
     public Order() {
         this.orderDate = LocalDateTime.now();
+        this.orderPriority = OrderPriority.SCHEDULED; // Set default for new orders
     }
 
     // Constructor
@@ -113,6 +118,13 @@ public class Order implements Serializable {
 
     public OrderStatus getOrderStatus() { return orderStatus; }
     public void setOrderStatus(OrderStatus orderStatus) { this.orderStatus = orderStatus; }
+
+    public OrderPriority getOrderPriority() { 
+        return orderPriority != null ? orderPriority : OrderPriority.SCHEDULED;
+    }
+    public void setOrderPriority(OrderPriority orderPriority) { 
+        this.orderPriority = orderPriority != null ? orderPriority : OrderPriority.SCHEDULED;
+    }
 
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
@@ -199,6 +211,11 @@ public class Order implements Serializable {
 
     public enum OrderStatus {
         PENDING, CONFIRMED, PREPARING, READY_FOR_PICKUP, OUT_FOR_DELIVERY, DELIVERED, PICKED_UP, CANCELLED
+    }
+
+    public enum OrderPriority {
+        IMMEDIATE, // Must be delivered within 3 hours
+        SCHEDULED  // Guaranteed at requested time
     }
 
     @Override

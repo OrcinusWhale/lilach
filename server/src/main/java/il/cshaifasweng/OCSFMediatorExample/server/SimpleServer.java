@@ -23,6 +23,10 @@ import il.cshaifasweng.OCSFMediatorExample.entities.CreateOrderRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.OrderResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.OrderHistoryRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.OrderHistoryResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.OrderCancellationRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.OrderCancellationResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.OrderDetailsRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.OrderDetailsResponse;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -323,6 +327,29 @@ public class SimpleServer extends AbstractServer {
         client.sendToClient(response);
       } catch (IOException e) {
         System.err.println("Failed to send order history response: " + e.getMessage());
+      }
+    } else if (msg instanceof OrderCancellationRequest) {
+      // Handle order cancellation request
+      OrderCancellationRequest cancellationRequest = (OrderCancellationRequest) msg;
+      System.out.println("Server received order cancellation request for order ID: " + cancellationRequest.getOrderId() + " from user ID: " + cancellationRequest.getUserId());
+      
+      try {
+        OrderCancellationResponse response = orderService.cancelOrder(cancellationRequest);
+        System.out.println("Order cancellation processed - Success: " + response.isSuccess() + ", Refund: $" + response.getRefundAmount());
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send order cancellation response: " + e.getMessage());
+      }
+    } else if (msg instanceof OrderDetailsRequest) {
+      // Handle order details request
+      OrderDetailsRequest detailsRequest = (OrderDetailsRequest) msg;
+      System.out.println("Server received order details request for order ID: " + detailsRequest.getOrderId() + " from user ID: " + detailsRequest.getUserId());
+      
+      try {
+        OrderDetailsResponse response = orderService.getOrderDetails(detailsRequest);
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send order details response: " + e.getMessage());
       }
     }
   }
