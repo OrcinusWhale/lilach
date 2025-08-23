@@ -27,6 +27,8 @@ import il.cshaifasweng.OCSFMediatorExample.entities.OrderCancellationRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.OrderCancellationResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.OrderDetailsRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.OrderDetailsResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.SessionRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.SessionResponse;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -80,6 +82,20 @@ public class SimpleServer extends AbstractServer {
           client.sendToClient(new CatalogueEvent(items));
         } catch (IOException e) {
           e.printStackTrace();
+        }
+      } else if (msgString.startsWith("LOGOUT_USER:")) {
+        // Handle logout message - clean up server-side session
+        System.out.println("=== LOGOUT DEBUG: Received logout message: " + msgString + " ===");
+        try {
+          String userIdStr = msgString.substring("LOGOUT_USER:".length());
+          int userId = Integer.parseInt(userIdStr);
+          System.out.println("=== LOGOUT DEBUG: Parsed userId: " + userId + " ===");
+          System.out.println("=== LOGOUT DEBUG: Active sessions before cleanup: " + SessionManager.getActiveSessionCount() + " ===");
+          boolean sessionCleaned = SessionManager.terminateSession(userId);
+          System.out.println("=== LOGOUT DEBUG: Session cleanup result: " + sessionCleaned + " ===");
+          System.out.println("=== LOGOUT DEBUG: Active sessions after cleanup: " + SessionManager.getActiveSessionCount() + " ===");
+        } catch (NumberFormatException e) {
+          System.err.println("=== LOGOUT DEBUG: Invalid logout message format: " + msgString + " ===");
         }
       } else if (msgString.startsWith("get ") && !msgString.startsWith("getCart ")) {
         // Handle get item request (but not getCart)
@@ -206,7 +222,7 @@ public class SimpleServer extends AbstractServer {
       System.out.println("Server received login request for: " + loginRequest.getUsername());
       
       try {
-        LoginResponse response = AuthenticationService.authenticateUser(loginRequest);
+        LoginResponse response = AuthenticationService.authenticateUser(loginRequest, client);
         client.sendToClient(response);
       } catch (IOException e) {
         System.err.println("Failed to send login response: " + e.getMessage());
@@ -351,7 +367,77 @@ public class SimpleServer extends AbstractServer {
       } catch (IOException e) {
         System.err.println("Failed to send order details response: " + e.getMessage());
       }
+    } else if (msg instanceof SessionRequest) {
+      // Handle session management requests
+      SessionRequest sessionRequest = (SessionRequest) msg;
+      System.out.println("Server received session request: " + sessionRequest.getRequestType() + " for user ID: " + sessionRequest.getUserId());
+      
+      try {
+        SessionResponse response = handleSessionRequest(sessionRequest);
+        client.sendToClient(response);
+      } catch (IOException e) {
+        System.err.println("Failed to send session response: " + e.getMessage());
+      }
     }
+  }
+
+  private SessionResponse handleSessionRequest(SessionRequest request) {
+    try {
+      switch (request.getRequestType()) {
+        case SessionRequest.RequestType.LOGOUT:
+          boolean loggedOut = AuthenticationService.logoutUser(request.getUserId());
+          if (loggedOut) {
+            System.out.println("User " + request.getUserId() + " logged out successfully");
+            return new SessionResponse(true, "Logout successful");
+          } else {
+            System.out.println("Logout failed for user " + request.getUserId() + " - no active session found");
+            return new SessionResponse(false, "No active session found");
+          }
+          
+        case SessionRequest.RequestType.VALIDATE_SESSION:
+          boolean valid = AuthenticationService.validateSession(request.getSessionId(), request.getUserId());
+          if (valid) {
+            return new SessionResponse(true, "Session is valid");
+          } else {
+            return new SessionResponse(false, "Session is invalid or expired");
+          }
+          
+        default:
+          return new SessionResponse(false, "Unknown session request type");
+      }
+    } catch (Exception e) {
+      System.err.println("Error handling session request: " + e.getMessage());
+      e.printStackTrace();
+      return new SessionResponse(false, "Server error: " + e.getMessage());
+    }
+  }
+
+  @Override
+  protected void clientDisconnected(ConnectionToClient client) {
+    System.out.println("Client disconnected: " + client.toString());
+    
+    // Clean up any active sessions for this connection
+    boolean sessionCleaned = AuthenticationService.cleanupSession(client);
+    if (sessionCleaned) {
+      System.out.println("Session cleaned up for disconnected client");
+    }
+    
+    // Call parent implementation
+    super.clientDisconnected(client);
+  }
+
+  @Override
+  protected void clientException(ConnectionToClient client, Throwable exception) {
+    System.out.println("Client exception for: " + client.toString() + " - " + exception.getMessage());
+    
+    // Clean up any active sessions for this connection
+    boolean sessionCleaned = AuthenticationService.cleanupSession(client);
+    if (sessionCleaned) {
+      System.out.println("Session cleaned up for client with exception");
+    }
+    
+    // Call parent implementation
+    super.clientException(client, exception);
   }
 
   private EmployeeManagementResponse handleEmployeeManagement(EmployeeManagementRequest request) {

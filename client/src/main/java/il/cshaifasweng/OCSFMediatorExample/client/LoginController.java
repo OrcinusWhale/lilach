@@ -80,7 +80,10 @@ public class LoginController implements Initializable {
             loginButton.setText("Login");
 
             if (response.isSuccess()) {
+                // TODO: Session management temporarily disabled - just set user without session ID
                 UserSession.setCurrentUser(response.getUser());
+                System.out.println("Login successful for user: " + response.getUser().getUsername());
+                
                 hideError();
                 try {
                     App.setRoot("userDetails");
@@ -89,7 +92,13 @@ public class LoginController implements Initializable {
                     e.printStackTrace();
                 }
             } else {
-                showError(response.getMessage());
+                // Handle session conflicts by checking message prefix
+                if (response.getMessage().startsWith("SESSION_CONFLICT:")) {
+                    String cleanMessage = response.getMessage().substring("SESSION_CONFLICT:".length()).trim();
+                    showSessionConflictError(cleanMessage);
+                } else {
+                    showError(response.getMessage());
+                }
             }
         });
     }
@@ -99,7 +108,15 @@ public class LoginController implements Initializable {
         errorLabel.setVisible(true);
     }
 
+    private void showSessionConflictError(String message) {
+        errorLabel.setText("⚠️ " + message);
+        errorLabel.setStyle("-fx-text-fill: orange;");
+        errorLabel.setVisible(true);
+    }
+
     private void hideError() {
+        errorLabel.setText("");
+        errorLabel.setStyle("-fx-text-fill: red;"); // Reset to default error color
         errorLabel.setVisible(false);
     }
 

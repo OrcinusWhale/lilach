@@ -54,8 +54,25 @@ public class App extends Application {
 
   @Override
   public void stop() throws Exception {
-    client.sendToServer("remove");
-    client.closeConnection();
+    System.out.println("Application closing - cleaning up sessions");
+    
+    // Properly logout user session before closing
+    try {
+      SessionService.getInstance().cleanup();
+    } catch (Exception e) {
+      System.err.println("Error during session cleanup: " + e.getMessage());
+    }
+    
+    // Send remove message and close connection
+    if (client != null && client.isConnected()) {
+      try {
+        client.sendToServer("remove");
+        client.closeConnection();
+      } catch (IOException e) {
+        System.err.println("Error closing client connection: " + e.getMessage());
+      }
+    }
+    
     super.stop();
   }
 
