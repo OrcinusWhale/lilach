@@ -65,6 +65,15 @@
                      </children>
                   </HBox>
                   
+                  <!-- Order Priority -->
+                  <HBox spacing="10.0">
+                     <children>
+                        <Label text="Order Priority:" />
+                        <ComboBox fx:id="orderPriorityComboBox" />
+                     </children>
+                  </HBox>
+                  <Label fx:id="orderPriorityDescriptionLabel" text="" style="-fx-text-fill: #666; -fx-font-size: 12px;" wrapText="true" />
+                  
                   <!-- Store Selection -->
                   <HBox spacing="10.0">
                      <children>
