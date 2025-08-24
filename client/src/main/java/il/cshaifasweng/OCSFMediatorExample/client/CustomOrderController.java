@@ -12,6 +12,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.GridPane;
+import javafx.scene.control.TextInputControl;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
@@ -20,6 +24,16 @@ import il.cshaifasweng.OCSFMediatorExample.entities.CartResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
 
 public class CustomOrderController {
+
+  // New root + layout nodes for responsiveness
+  @FXML
+  private BorderPane rootPane;
+
+  @FXML
+  private VBox formWrapper;
+
+  @FXML
+  private GridPane formGrid;
 
   @FXML // fx:id="colorTF"
   private TextField colorTF; // Value injected by FXMLLoader
@@ -48,11 +62,66 @@ public class CustomOrderController {
   @FXML
   private Label requestSuccess; // success label
 
+  // Helper to toggle error style on text inputs
+  private void setFieldError(TextInputControl control, boolean isError) {
+    if (control == null) return;
+    var styles = control.getStyleClass();
+    if (isError) {
+      if (!styles.contains("error-field")) styles.add("error-field");
+    } else {
+      styles.remove("error-field");
+    }
+  }
+
+  // Attempt live validation when user edits fields
+  private void setupLiveValidation() {
+    if (itemTF != null) {
+      itemTF.textProperty().addListener((obs, o, n) -> {
+        boolean empty = n == null || n.trim().isEmpty();
+        itemError.setVisible(empty);
+        setFieldError(itemTF, empty);
+      });
+    }
+    if (priceTF1 != null && priceTF2 != null) {
+      var listener = (javafx.beans.value.ChangeListener<String>) (obs, o, n) -> validatePriceFields(false);
+      priceTF1.textProperty().addListener(listener);
+      priceTF2.textProperty().addListener(listener);
+    }
+  }
+
+  private boolean validatePriceFields(boolean showGeneralError) {
+    boolean hasError = false;
+    String p1 = priceTF1.getText();
+    String p2 = priceTF2.getText();
+    try {
+      int v1 = Integer.parseInt(p1.trim());
+      int v2 = Integer.parseInt(p2.trim());
+      if (v1 < 0 || v2 < 0 || v2 < v1) {
+        hasError = true;
+      }
+    } catch (Exception e) {
+      hasError = true; // includes empty / parse failures
+    }
+    priceError.setVisible(hasError);
+    setFieldError(priceTF1, hasError);
+    setFieldError(priceTF2, hasError);
+    if (showGeneralError && hasError && requestError != null) {
+      requestError.setText("Please fix validation errors");
+      requestError.setVisible(true);
+    }
+    return !hasError;
+  }
+
   @FXML
   void addToCart(ActionEvent event) {
     // Reset feedback labels
     if (requestError != null) requestError.setVisible(false);
     if (requestSuccess != null) requestSuccess.setVisible(false);
+
+    // Clear previous error field styles
+    setFieldError(itemTF, false);
+    setFieldError(priceTF1, false);
+    setFieldError(priceTF2, false);
 
     boolean error = false;
     String itemString = itemTF.getText();
@@ -66,23 +135,28 @@ public class CustomOrderController {
     // Validate mandatory item name
     if (itemString == null || itemString.trim().isEmpty()) {
       itemError.setVisible(true);
+      setFieldError(itemTF, true);
       error = true;
     } else {
       itemError.setVisible(false);
     }
 
-    // Validate price range if both provided (both expected)
+    // Validate price range
     try {
       price1 = Integer.parseInt(priceString1.trim());
       price2 = Integer.parseInt(priceString2.trim());
       if (price1 < 0 || price2 < 0 || price2 < price1) {
         priceError.setVisible(true);
+        setFieldError(priceTF1, true);
+        setFieldError(priceTF2, true);
         error = true;
       } else {
         priceError.setVisible(false);
       }
     } catch (NumberFormatException e) {
       priceError.setVisible(true);
+      setFieldError(priceTF1, true);
+      setFieldError(priceTF2, true);
       error = true;
     }
 
@@ -172,5 +246,20 @@ public class CustomOrderController {
     EventBus.getDefault().register(this);
     if (requestError != null) requestError.setVisible(false);
     if (requestSuccess != null) requestSuccess.setVisible(false);
+    setupLiveValidation();
+
+    // Responsive layout: toggle compact class based on width
+    if (rootPane != null) {
+      rootPane.widthProperty().addListener((obs, oldW, newW) -> {
+        if (newW == null) return;
+        var styles = rootPane.getStyleClass();
+        boolean shouldCompact = newW.doubleValue() < 580; // threshold
+        if (shouldCompact && !styles.contains("compact")) {
+          styles.add("compact");
+        } else if (!shouldCompact) {
+          styles.remove("compact");
+        }
+      });
+    }
   }
 }

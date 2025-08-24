@@ -75,20 +75,22 @@ public class ItemController {
   public void setItem(Item item) {
     itemId = Integer.toString(item.getItemId());
     nameLabel.setText(item.getName());
-    priceLabel.setText(item.getPrice() + "$");
+    priceLabel.setText(item.getPrice() + "$" );
     int sale = item.getSalePrice();
-    
-    // Clear any previous styling first
+
+    // Reset sale visuals
     priceLabel.getStyleClass().remove("strikethrough");
     saleLabel.setVisible(false);
-    
-    // Only show sale if there's actually a valid sale price (not -1 and not 0)
+    saleLabel.setManaged(false);
+
+    // Only show sale if there's actually a valid sale price (not -1 or 0 and different from original)
     if (sale > 0 && sale != item.getPrice()) {
       saleLabel.setText(sale + "$");
       saleLabel.setVisible(true);
+      saleLabel.setManaged(true);
       priceLabel.getStyleClass().add("strikethrough");
     }
-    
+
     typeLabel.setText(item.getType());
     byte[] image = item.getImage();
     if (image != null) {
@@ -120,3 +122,4 @@ public class ItemController {
     return itemId;
   }
 }
+

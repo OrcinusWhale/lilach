@@ -1,88 +1,119 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ItemPageController">
-   <children>
-      <Label fx:id="nameLabel" alignment="CENTER" layoutY="58.0" prefWidth="720.0" text="Loading..." textAlignment="CENTER" wrapText="true">
-         <font>
-            <Font size="32.0" />
-         </font>
-      </Label>
-      <Label fx:id="idLabel" layoutX="14.0" layoutY="132.0" text="Item ID:" visible="false">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Button fx:id="backBtn" layoutX="546.0" layoutY="32.0" mnemonicParsing="false" onAction="#backToCatalogue" text="Back to catalogue" />
-      <Label fx:id="typeLabel" layoutX="14.0" layoutY="175.0" text="Item type:" visible="false">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Label fx:id="priceLabel" layoutX="14.0" layoutY="216.0" stylesheets="@strikethrough.css" text="Price:" visible="false">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Button fx:id="editBtn" disable="true" layoutX="14.0" layoutY="257.0" mnemonicParsing="false" onAction="#toggleEdit" text="Edit Item" visible="false" />
-      <TextField fx:id="priceTF" disable="true" layoutX="66.0" layoutY="218.0" visible="false" />
-      <Button fx:id="confirmBtn" disable="true" layoutX="15.0" layoutY="294.0" mnemonicParsing="false" onAction="#confirmEdit" text="Confirm" visible="false" />
-      <Button fx:id="cancelBtn" disable="true" layoutX="115.0" layoutY="294.0" mnemonicParsing="false" onAction="#toggleEdit" text="Cancel" visible="false" />
-      <Label fx:id="priceErrorLabel" layoutX="466.0" layoutY="220.0" text="Invalid price" textFill="RED" visible="false">
-         <font>
-            <Font size="16.0" />
-         </font>
-      </Label>
-      <ImageView fx:id="imageView" fitHeight="350.0" fitWidth="350.0" layoutX="360.0" layoutY="119.0" pickOnBounds="true" preserveRatio="true" />
-      <TextField fx:id="typeTF" disable="true" layoutX="110.0" layoutY="177.0" visible="false" />
-      <TextField fx:id="nameTF" alignment="CENTER" disable="true" layoutX="31.0" layoutY="64.0" prefHeight="39.0" prefWidth="658.0" visible="false">
-         <font>
-            <Font size="32.0" />
-         </font>
-      </TextField>
-      <CheckBox fx:id="imageCheck" disable="true" layoutX="17.0" layoutY="256.0" mnemonicParsing="false" onAction="#toggleBrowse" selected="true" text="Image:" visible="false">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </CheckBox>
-      <Button fx:id="browseBtn" disable="true" layoutX="127.0" layoutY="258.0" mnemonicParsing="false" onAction="#browseImage" text="Browse" visible="false" />
-      <Label fx:id="selectedImageLabel" layoutX="195.0" layoutY="262.0" visible="false" />
-      <Button fx:id="checkDeleteBtn" disable="true" layoutX="316.0" layoutY="539.0" mnemonicParsing="false" onAction="#toggleDelete" text="Delete item" visible="false" />
-      <Label fx:id="deleteLabel" layoutX="163.0" layoutY="538.0" text="Are you sure you want to delete this item?" textFill="RED" visible="false">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Button fx:id="deleteBtn" disable="true" layoutX="287.0" layoutY="580.0" mnemonicParsing="false" onAction="#deleteItem" text="Delete" textFill="RED" visible="false" />
-      <Button fx:id="cancelDeleteBtn" disable="true" layoutX="375.0" layoutY="580.0" mnemonicParsing="false" onAction="#toggleDelete" text="Cancel" visible="false" />
-      <CheckBox fx:id="saleCheck" disable="true" layoutX="240.0" layoutY="222.0" mnemonicParsing="false" onAction="#toggleSale" text="Sale:" visible="false" />
-      <TextField fx:id="saleTF" disable="true" layoutX="294.0" layoutY="218.0" visible="false" />
-      <Label fx:id="saleLabel" layoutX="152.0" layoutY="217.0" text="Sale:" textFill="RED" visible="false">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      
-      <!-- Cart Functionality Section -->
-      <Label fx:id="addToCartLabel" layoutX="14.0" layoutY="340.0" text="Add to Cart:" visible="true">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </Label>
-      <Label fx:id="quantityLabel" layoutX="14.0" layoutY="370.0" text="Quantity:" visible="true" />
-      <TextField fx:id="quantityField" layoutX="80.0" layoutY="366.0" prefWidth="60.0" text="1" visible="true" />
-      <Label fx:id="specialRequestsLabel" layoutX="14.0" layoutY="400.0" text="Special Requests:" visible="true" />
-      <TextArea fx:id="specialRequestsArea" layoutX="14.0" layoutY="420.0" prefHeight="60.0" prefWidth="300.0" promptText="Any special requests for this item..." wrapText="true" visible="true" />
-      <Button fx:id="addToCartButton" layoutX="14.0" layoutY="490.0" mnemonicParsing="false" onAction="#addToCart" style="-fx-background-color: #28a745; -fx-text-fill: white;" text="Add to Cart" visible="true" />
-      <Button fx:id="viewCartButton" layoutX="120.0" layoutY="490.0" mnemonicParsing="false" onAction="#viewCart" style="-fx-background-color: #007bff; -fx-text-fill: white;" text="View Cart" visible="true" />
-      
-   </children>
+<AnchorPane fx:id="rootPane" prefHeight="720.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ItemPageController" stylesheets="@itemPage.css">
+    <children>
+        <VBox spacing="16" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0" styleClass="root-container">
+            <!-- Top Bar -->
+            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="top-bar">
+                <Button fx:id="backBtn" mnemonicParsing="false" onAction="#backToCatalogue" text="Back" styleClass="secondary-button" />
+                <Label fx:id="nameLabel" text="Loading..." styleClass="title-label" HBox.hgrow="ALWAYS" maxWidth="1.7976931348623157E308">
+                    <font><Font size="32"/></font>
+                </Label>
+                <TextField fx:id="nameTF" alignment="CENTER" disable="true" visible="false" styleClass="title-edit-field" HBox.hgrow="ALWAYS" />
+            </HBox>
+
+            <HBox fx:id="contentFlow" spacing="24" VBox.vgrow="ALWAYS" styleClass="content-hbox">
+                <!-- Left Column: Image -->
+                <StackPane styleClass="image-wrapper" prefWidth="420" minWidth="300">
+                    <ImageView fx:id="imageView" preserveRatio="true" fitWidth="400" fitHeight="400" />
+                </StackPane>
+
+                <!-- Right Column: Details & Actions -->
+                <VBox spacing="8" prefWidth="360" minWidth="300" fillWidth="true" styleClass="details-column">
+                    <GridPane hgap="6" vgap="6" styleClass="details-grid">
+                        <columnConstraints>
+                            <ColumnConstraints halignment="LEFT" hgrow="NEVER" />
+                            <ColumnConstraints hgrow="ALWAYS" />
+                        </columnConstraints>
+                        <rowConstraints>
+                            <RowConstraints vgrow="NEVER" /> <!-- 0 ID -->
+                            <RowConstraints vgrow="NEVER" /> <!-- 1 Type -->
+                            <RowConstraints vgrow="NEVER" /> <!-- 2 Price -->
+                            <RowConstraints vgrow="NEVER" /> <!-- 3 Sale label -->
+                            <RowConstraints vgrow="NEVER" /> <!-- 4 Sale edit controls -->
+                            <RowConstraints vgrow="NEVER" /> <!-- 5 Error -->
+                            <RowConstraints vgrow="NEVER" /> <!-- 6 Image controls -->
+                        </rowConstraints>
+                        <!-- ID -->
+                        <Label text="Item ID:" visible="false" fx:id="idLabel" GridPane.rowIndex="0" GridPane.columnSpan="2" styleClass="meta-label" />
+                        <!-- Type: static label + value label (view) or text field (edit) -->
+                        <Label fx:id="typeLabel" text="Type:" visible="false" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="meta-label" />
+                        <Label fx:id="typeValueLabel" text="" visible="false" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                        <TextField fx:id="typeTF" disable="true" visible="false" promptText="Type" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                        <!-- Price: static label col0, dynamic value label & editable field share col1 -->
+                        <Label fx:id="priceLabel" text="Price:" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                        <Label fx:id="priceValueLabel" text="" visible="false" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="price-label" stylesheets="@strikethrough.css" />
+                        <TextField fx:id="priceTF" disable="true" visible="false" promptText="Price" prefWidth="110" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+                        <!-- SALE label -->
+                        <Label fx:id="saleLabel" text="SALE:" textFill="RED" visible="false" GridPane.rowIndex="3" GridPane.columnSpan="2" />
+                        <!-- Sale editing controls -->
+                        <HBox spacing="6" alignment="CENTER_LEFT" GridPane.rowIndex="4" GridPane.columnSpan="2">
+                            <CheckBox fx:id="saleCheck" text="Sale:" disable="true" visible="false" onAction="#toggleSale" />
+                            <TextField fx:id="saleTF" disable="true" visible="false" promptText="Sale" prefWidth="90" />
+                        </HBox>
+                        <!-- Error label -->
+                        <Label fx:id="priceErrorLabel" text="Invalid price" textFill="RED" visible="false" GridPane.rowIndex="5" GridPane.columnSpan="2" />
+                        <!-- Image change section -->
+                        <HBox spacing="6" alignment="CENTER_LEFT" GridPane.rowIndex="6" GridPane.columnSpan="2">
+                            <CheckBox fx:id="imageCheck" text="Image:" disable="true" visible="false" onAction="#toggleBrowse" selected="true" />
+                            <Button fx:id="browseBtn" text="Browse" disable="true" visible="false" onAction="#browseImage" />
+                            <Label fx:id="selectedImageLabel" visible="false" />
+                        </HBox>
+                    </GridPane>
+
+                    <HBox spacing="8">
+                        <VBox.margin>
+                            <Insets top="4" left="0" right="0" bottom="0" />
+                        </VBox.margin>
+                        <Button fx:id="editBtn" text="Edit Item" disable="true" visible="false" onAction="#toggleEdit" styleClass="primary-button" />
+                        <Button fx:id="confirmBtn" text="Confirm" disable="true" visible="false" onAction="#confirmEdit" styleClass="success-button" />
+                        <Button fx:id="cancelBtn" text="Cancel" disable="true" visible="false" onAction="#toggleEdit" styleClass="secondary-button" />
+                    </HBox>
+
+                    <!-- Delete Section -->
+                    <VBox fx:id="deleteSection" spacing="6" styleClass="delete-section">
+                        <VBox.margin>
+                            <Insets top="2" left="0" right="0" bottom="0" />
+                        </VBox.margin>
+                        <Label fx:id="deleteLabel" text="Are you sure you want to delete this item?" textFill="RED" visible="false" managed="false" />
+                        <HBox spacing="8">
+                            <Button fx:id="checkDeleteBtn" text="Delete item" disable="true" visible="false" onAction="#toggleDelete" styleClass="danger-outline-button" />
+                            <Button fx:id="deleteBtn" text="Delete" textFill="RED" disable="true" visible="false" onAction="#deleteItem" styleClass="danger-button" />
+                            <Button fx:id="cancelDeleteBtn" text="Cancel" disable="true" visible="false" onAction="#toggleDelete" styleClass="secondary-button" />
+                        </HBox>
+                    </VBox>
+
+                    <!-- Cart Section -->
+                    <TitledPane text="Purchase" expanded="true" styleClass="cart-pane">
+                        <content>
+                            <VBox spacing="8" styleClass="cart-section">
+                                <padding>
+                                    <Insets top="8" right="10" bottom="10" left="10" />
+                                </padding>
+                                <Label fx:id="addToCartLabel" text="Add to Cart:" visible="true" styleClass="section-label" />
+                                <HBox spacing="8" alignment="CENTER_LEFT">
+                                    <Label fx:id="quantityLabel" text="Quantity:" visible="true" />
+                                    <TextField fx:id="quantityField" text="1" prefWidth="70" visible="true" />
+                                </HBox>
+                                <Label fx:id="specialRequestsLabel" text="Special Requests:" visible="true" />
+                                <TextArea fx:id="specialRequestsArea" promptText="Any special requests for this item..." wrapText="true" prefRowCount="3" visible="true" />
+                                <HBox spacing="8">
+                                    <Button fx:id="addToCartButton" text="Add to Cart" visible="true" onAction="#addToCart" styleClass="success-button" />
+                                    <Button fx:id="viewCartButton" text="View Cart" visible="true" onAction="#viewCart" styleClass="primary-button" />
+                                </HBox>
+                            </VBox>
+                        </content>
+                    </TitledPane>
+                </VBox>
+            </HBox>
+
+            <Region VBox.vgrow="ALWAYS" />
+        </VBox>
+    </children>
 </AnchorPane>
