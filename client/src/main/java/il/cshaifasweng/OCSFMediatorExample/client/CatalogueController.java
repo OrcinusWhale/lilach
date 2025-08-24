@@ -24,6 +24,7 @@ import org.greenrobot.eventbus.Subscribe;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 import il.cshaifasweng.OCSFMediatorExample.entities.NewItemEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.Store; // keep store for item.getStores()
 
 public class CatalogueController {
 
@@ -97,15 +98,47 @@ public class CatalogueController {
   }
 
   public void loadItem(Item item) {
+    // Add category options first (same as before)
     ObservableList<String> categories = categoryBox.getItems();
     String category = item.getType();
     if (!categories.contains(category)) {
       categories.add(category);
     }
+
+    // Populate storeBox dynamically from the item's stores BEFORE filtering (mirrors category logic)
+    if (storeBox != null) {
+      ObservableList<String> storeNames = storeBox.getItems();
+      if (!storeNames.contains("All")) {
+        storeNames.add(0, "All");
+      }
+      if (item.getStores() != null) {
+        for (Store st : item.getStores()) {
+          if (st != null) {
+            String sName = st.getStoreName();
+            if (sName != null && !storeNames.contains(sName)) {
+              storeNames.add(sName);
+            }
+          }
+        }
+      }
+    }
+
+    // Apply category filter AFTER ensuring category list is updated
     String selectedCategory = categoryBox.getValue();
-    if (!selectedCategory.equals("All") && !selectedCategory.equals(category)) {
+    if (selectedCategory != null && !selectedCategory.equals("All") && !selectedCategory.equals(category)) {
       return;
     }
+
+    // Apply store filter AFTER ensuring store list is updated
+    String selectedStore = storeBox.getValue();
+    if (selectedStore != null && !selectedStore.equals("All")) {
+      boolean inStore = item.getStores() != null && item.getStores().stream()
+              .anyMatch(store -> selectedStore.equals(store.getStoreName()));
+      if (!inStore) {
+        return; // skip items not available in selected store
+      }
+    }
+
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("item" + ".fxml"));
     Parent itemEntry = null;
     try {
@@ -180,10 +213,8 @@ public class CatalogueController {
     storeBox.setValue("All");
 
     applyUserPermissions();
-
     setupResponsiveLayout();
 
-    // Request catalogue data from server
     try {
       System.out.println("Client sending catalogue request to server");
       App.getClient().sendToServer("catalogue");
@@ -191,9 +222,7 @@ public class CatalogueController {
     } catch (IOException e) {
       System.err.println("Error sending catalogue request: " + e.getMessage());
       e.printStackTrace();
-      Platform.runLater(() -> {
-        loadingLabel.setText("Error loading catalogue");
-      });
+      Platform.runLater(() -> loadingLabel.setText("Error loading catalogue"));
     }
   }
 
