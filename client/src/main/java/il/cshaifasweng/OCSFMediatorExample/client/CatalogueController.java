@@ -135,6 +135,16 @@ public class CatalogueController {
     }
   }
 
+  @FXML
+  void customOrder() {
+    EventBus.getDefault().unregister(this);
+    try {
+      App.setRoot("custom");
+    } catch (IOException e) {
+      throw new RuntimeException();
+    }
+  }
+
   @Subscribe
   public void unsubscribe(UnsubscribeEvent event) {
     EventBus.getDefault().unregister(this);
@@ -147,7 +157,7 @@ public class CatalogueController {
     categoryBox.setValue("All");
     storeBox.getItems().add("All");
     storeBox.setValue("All");
-    
+
     // Request catalogue data from server
     try {
       System.out.println("Client sending catalogue request to server");
