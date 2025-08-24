@@ -23,7 +23,7 @@ public class Item implements Serializable {
   @Transient
   private byte[] image;
 
-  @ManyToMany
+  @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(name = "item_store",
           joinColumns = @JoinColumn(name = "item_id"),
           inverseJoinColumns = @JoinColumn(name = "store_id"))
