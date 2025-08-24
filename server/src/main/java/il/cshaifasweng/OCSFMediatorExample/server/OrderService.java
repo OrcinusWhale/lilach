@@ -51,18 +51,22 @@ public class OrderService {
             // Create cart item
             CartItem cartItem = new CartItem(cart, item, request.getQuantity(), request.getSpecialRequests());
 
-            // Check if item already exists in cart
-            CartItem existingItem = cart.findCartItemByItem(item);
-            if (existingItem != null) {
-                // Update quantity of existing item
-                existingItem.setQuantity(existingItem.getQuantity() + cartItem.getQuantity());
-                session.saveOrUpdate(existingItem); // Save the updated existing item
-                System.out.println("OrderService: Updated existing cart item quantity to " + existingItem.getQuantity());
+            // Check if item already exists in cart respecting rule: only consider special requests if item id == 1
+            CartItem existingItem;
+            if (item.getItemId() == 1) {
+                existingItem = cart.findCartItemByItemAndSpecialRequests(item, cartItem.getSpecialRequests());
             } else {
-                // Add new item to cart
-                cart.addCartItem(cartItem);
-                session.saveOrUpdate(cartItem); // Save the new cart item
-                System.out.println("OrderService: Added new cart item with quantity " + cartItem.getQuantity());
+                existingItem = cart.findCartItemByItem(item);
+            }
+            if (existingItem != null) {
+                existingItem.setQuantity(existingItem.getQuantity() + cartItem.getQuantity());
+                session.saveOrUpdate(existingItem);
+                System.out.println("OrderService: Updated existing cart item (itemId=" + item.getItemId() + ") new quantity: " + existingItem.getQuantity());
+            } else {
+                cart.addCartItem(cartItem); // Cart will also enforce the same rule
+                session.saveOrUpdate(cartItem);
+                System.out.println("OrderService: Added new cart item (itemId=" + item.getItemId() + ") quantity: " + cartItem.getQuantity() +
+                        (item.getItemId() == 1 && cartItem.getSpecialRequests() != null ? ", special requests: " + cartItem.getSpecialRequests() : ""));
             }
 
             session.saveOrUpdate(cart);

@@ -69,6 +69,7 @@ public class CartController {
 
     @FXML
     void initialize() {
+        System.out.println("Initializing CartController");
         EventBus.getDefault().register(this);
         setupTableColumns();
         // Delay cart loading to ensure user session is established
@@ -83,9 +84,42 @@ public class CartController {
 
     private void setupTableColumns() {
         // Configure table columns with proper property binding
+        System.out.println("setting up table columns");
         itemNameColumn.setCellValueFactory(cellData -> {
             CartItem cartItem = cellData.getValue();
-            return new SimpleStringProperty(cartItem != null ? cartItem.getItemName() : "");
+            String displayName = "";
+            if (cartItem != null) {
+                // If the underlying item has ID 1, extract first substring between ':' and '|' from special requests
+                try {
+                    Item item = cartItem.getItem();
+                    if (item != null && item.getItemId() == 1) {
+                        String sr = cartItem.getSpecialRequests();
+                        if (sr != null) {
+                            int colonIdx = sr.indexOf(':');
+                            if (colonIdx >= 0) {
+                                int pipeIdx = sr.indexOf('|', colonIdx + 1);
+                                if (pipeIdx > colonIdx + 1) {
+                                    displayName = sr.substring(colonIdx + 1, pipeIdx).trim();
+                                } else {
+                                    // No following pipe, take rest of string after ':'
+                                    displayName = sr.substring(colonIdx + 1).trim();
+                                }
+                            } else {
+                                // No ':' found, fallback
+                                displayName = cartItem.getItemName();
+                            }
+                        } else {
+                            displayName = cartItem.getItemName();
+                        }
+                    } else {
+                        displayName = cartItem.getItemName();
+                    }
+                } catch (Exception ex) {
+                    // Fallback on any unexpected error
+                    displayName = cartItem.getItemName();
+                }
+            }
+            return new SimpleStringProperty(displayName);
         });
         
         quantityColumn.setCellValueFactory(cellData -> {
@@ -182,6 +216,7 @@ public class CartController {
         });
 
         cartTable.setItems(cartItems);
+        System.out.println("Table columns set up complete");
     }
 
     private void loadCart() {
@@ -200,6 +235,7 @@ public class CartController {
     }
 
     private void showEmptyCart() {
+        System.out.println("CartController: Showing empty cart");
         cartItems.clear();
         emptyCartLabel.setVisible(true);
         cartTable.setVisible(false);

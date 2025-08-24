@@ -49,5 +49,8 @@
       <Button layoutX="52.0" layoutY="492.0" mnemonicParsing="false" onAction="#addToCart" text="Add to cart" />
       <Label fx:id="itemError" layoutX="378.0" layoutY="159.0" text="This field is mendatory" textFill="RED" visible="false" />
       <Label fx:id="priceError" layoutX="300.0" layoutY="208.0" text="Invalid price" textFill="RED" visible="false" />
+      <!-- New general feedback labels -->
+      <Label fx:id="requestError" layoutX="52.0" layoutY="526.0" text="Error" textFill="RED" visible="false" />
+      <Label fx:id="requestSuccess" layoutX="52.0" layoutY="526.0" text="Success" textFill="GREEN" visible="false" />
    </children>
 </AnchorPane>

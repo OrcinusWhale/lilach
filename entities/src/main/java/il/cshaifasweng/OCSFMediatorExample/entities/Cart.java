@@ -65,13 +65,16 @@ public class Cart implements Serializable {
 
     // Helper methods
     public void addCartItem(CartItem cartItem) {
-        // Check if item already exists in cart
-        CartItem existingItem = findCartItemByItem(cartItem.getItem());
+        CartItem existingItem;
+        // Only consider special requests uniqueness if item id == 1
+        if (cartItem.getItem() != null && cartItem.getItem().getItemId() == 1) {
+            existingItem = findCartItemByItemAndSpecialRequests(cartItem.getItem(), cartItem.getSpecialRequests());
+        } else {
+            existingItem = findCartItemByItem(cartItem.getItem());
+        }
         if (existingItem != null) {
-            // Update quantity of existing item
             existingItem.setQuantity(existingItem.getQuantity() + cartItem.getQuantity());
         } else {
-            // Add new item to cart
             cartItems.add(cartItem);
             cartItem.setCart(this);
         }
@@ -101,6 +104,21 @@ public class Cart implements Serializable {
                 .filter(cartItem -> cartItem.getItem().getItemId() == item.getItemId())
                 .findFirst()
                 .orElse(null);
+    }
+
+    // New method considering special requests as part of identity
+    public CartItem findCartItemByItemAndSpecialRequests(Item item, String specialRequests) {
+        String normalized = normalizeSpecialRequests(specialRequests);
+        return cartItems.stream()
+                .filter(cartItem -> cartItem.getItem().getItemId() == item.getItemId()
+                        && normalizeSpecialRequests(cartItem.getSpecialRequests()).equals(normalized))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String normalizeSpecialRequests(String sr) {
+        if (sr == null) return ""; // treat null and empty as same
+        return sr.trim(); // keep case sensitivity; adjust here if case-insensitive needed
     }
 
     public void clearCart() {
