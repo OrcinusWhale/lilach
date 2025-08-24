@@ -57,7 +57,7 @@ public class AdminController implements Initializable {
     private TextField phoneField;
     
     @FXML
-    private TextField addressField;
+    private TextArea addressField;
     
     @FXML
     private TextField departmentField;
