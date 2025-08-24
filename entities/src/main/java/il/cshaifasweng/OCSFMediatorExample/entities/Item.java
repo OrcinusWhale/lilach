@@ -17,7 +17,6 @@ public class Item implements Serializable {
   private String type;
   private int price;
   private int salePrice = -1;
-  @Transient
   private File imageFile;
   @Transient
   private byte[] image;

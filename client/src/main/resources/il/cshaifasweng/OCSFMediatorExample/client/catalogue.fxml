@@ -34,7 +34,7 @@
             </Button>
             <Button fx:id="addBtn" disable="true" mnemonicParsing="false" onAction="#addItem" text="Add item">
                <FlowPane.margin>
-                  <Insets right="480.0" />
+                  <Insets right="1000.0" />
                </FlowPane.margin>
             </Button>
             <Label text="Category:" />
@@ -47,7 +47,12 @@
             </ChoiceBox>
             <Button fx:id="filterBtn" mnemonicParsing="false" onAction="#filter" text="Filter">
                <FlowPane.margin>
-                  <Insets right="150.0" />
+                  <Insets right="100.0" />
+               </FlowPane.margin>
+            </Button>
+            <Button fx:id="customBtn" mnemonicParsing="false" onAction="#customOrder" text="Custom order">
+               <FlowPane.margin>
+                  <Insets right="10000.0" />
                </FlowPane.margin>
             </Button>
          </children>
