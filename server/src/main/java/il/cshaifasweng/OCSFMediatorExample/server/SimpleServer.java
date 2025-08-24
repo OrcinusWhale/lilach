@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
+import il.cshaifasweng.OCSFMediatorExample.entities.Store;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.SubscribedClient;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -193,19 +194,41 @@ public class SimpleServer extends AbstractServer {
             dbItem.setType(item.getType());
             dbItem.setPrice(item.getPrice());
             dbItem.setSalePrice(item.getSalePrice());
+            // Handle store associations: clear and reattach managed stores
             try {
                 App.session.beginTransaction();
+                dbItem.getStores().clear();
+                if (item.getStores() != null) {
+                    for (Store st : item.getStores()) {
+                        if (st != null && st.getStoreId() != null) {
+                            Store managed = App.session.get(Store.class, st.getStoreId());
+                            if (managed != null) {
+                                dbItem.addStore(managed);
+                            } else {
+                                System.err.println("Store id " + st.getStoreId() + " not found while adding item");
+                            }
+                        }
+                    }
+                }
                 App.session.saveOrUpdate(dbItem);
                 App.session.flush();
                 App.session.getTransaction().commit();
-                dbItem.loadImage();
-                if (newItem) {
-                    sendToAllClients(new NewItemEvent(dbItem));
-                } else {
-                    sendToAllClients(new UpdateItemEvent(dbItem));
-                }
-                client.sendToClient(new AddResponseEvent("add success"));
             } catch (Exception e) {
+                if (App.session.getTransaction().isActive()) {
+                    App.session.getTransaction().rollback();
+                }
+                e.printStackTrace();
+                return;
+            }
+            dbItem.loadImage();
+            if (newItem) {
+                sendToAllClients(new NewItemEvent(dbItem));
+            } else {
+                sendToAllClients(new UpdateItemEvent(dbItem));
+            }
+            try {
+                client.sendToClient(new AddResponseEvent("add success"));
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         } else if (msg instanceof User) {

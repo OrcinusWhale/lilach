@@ -4,6 +4,8 @@ import javax.persistence.*;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "Items")
@@ -20,6 +22,12 @@ public class Item implements Serializable {
   private File imageFile;
   @Transient
   private byte[] image;
+
+  @ManyToMany
+  @JoinTable(name = "item_store",
+          joinColumns = @JoinColumn(name = "item_id"),
+          inverseJoinColumns = @JoinColumn(name = "store_id"))
+  private Set<Store> stores = new HashSet<>();
 
   public Item(String name, String type, int price) {
     this.name = name;
@@ -117,5 +125,27 @@ public class Item implements Serializable {
     map.put("type", type);
     map.put("price", Integer.toString(price) + "$");
     return map;
+  }
+
+  public Set<Store> getStores() {
+    return stores;
+  }
+
+  public void setStores(Set<Store> stores) {
+    this.stores = stores;
+  }
+
+  public void addStore(Store store) {
+    if (store == null) return;
+    stores.add(store);
+    if (!store.getItems().contains(this)) {
+      store.getItems().add(this);
+    }
+  }
+
+  public void removeStore(Store store) {
+    if (store == null) return;
+    stores.remove(store);
+    store.getItems().remove(this);
   }
 }

@@ -27,6 +27,10 @@ import il.cshaifasweng.OCSFMediatorExample.entities.UpdateItemEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.AddToCartRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.CartResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
+import il.cshaifasweng.OCSFMediatorExample.entities.Store;
+import il.cshaifasweng.OCSFMediatorExample.entities.StoreListRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.StoreListResponse;
+import javafx.scene.Node;
 
 public class ItemPageController {
 
@@ -140,6 +144,10 @@ public class ItemPageController {
   @FXML
   private Label specialRequestsLabel;
 
+  @FXML private Label storesViewLabel; // view mode label caption
+  @FXML private Label storesValueLabel; // view mode value list
+  @FXML private VBox storesBox; // edit mode checkbox container
+
   private File selectedImage;
 
   private FileChooser fileChooser = new FileChooser();
@@ -147,6 +155,8 @@ public class ItemPageController {
   private boolean edit = false;
 
   private boolean delete = false;
+
+  private boolean storesLoaded = false;
 
   private double originalImageSize = 400; // baseline size; won't grow beyond this
 
@@ -292,6 +302,28 @@ public class ItemPageController {
     saleCheck.setDisable(!edit);
     saleCheck.setVisible(edit);
 
+    // Stores visibility toggle
+    if (storesViewLabel != null && storesValueLabel != null && storesBox != null) {
+      if (edit) {
+        storesViewLabel.setVisible(false);
+        storesValueLabel.setVisible(false);
+        storesBox.setDisable(false);
+        storesBox.setVisible(true);
+        if (!storesLoaded) {
+          requestStoresAndBuild();
+        } else {
+          // ensure checkboxes reflect current item stores
+          syncStoreCheckboxesSelection();
+        }
+      } else { // leaving edit
+        storesBox.setVisible(false);
+        storesBox.setDisable(true);
+        storesViewLabel.setVisible(true);
+        storesValueLabel.setVisible(true);
+        updateStoresValueLabel();
+      }
+    }
+
     // Prefill fields when entering edit
     if (edit && item != null) {
       typeTF.setText(item.getType());
@@ -366,6 +398,22 @@ public class ItemPageController {
     if (!type.isEmpty()) {
       item.setType(type);
       if (typeValueLabel != null) typeValueLabel.setText(type); // immediate UI update
+    }
+    // Collect selected stores if storesBox visible
+    if (storesBox != null && storesBox.isVisible()) {
+      java.util.Set<Store> selectedStores = new java.util.HashSet<>();
+      for (Node n : storesBox.getChildren()) {
+        if (n instanceof CheckBox) {
+          CheckBox cb = (CheckBox) n;
+          if (cb.isSelected() && cb.getUserData() instanceof Store) {
+            selectedStores.add((Store) cb.getUserData());
+          }
+        }
+      }
+      item.getStores().clear();
+      for (Store st : selectedStores) {
+        item.addStore(st);
+      }
     }
     try {
       App.getClient().sendToServer(item);
@@ -465,6 +513,7 @@ public class ItemPageController {
         } else {
           imageView.setImage(null);
         }
+        updateStoresValueLabel();
       });
     }
   }
@@ -548,11 +597,75 @@ public class ItemPageController {
     }
   }
 
+  private void requestStoresAndBuild() {
+    try { App.getClient().sendToServer(new StoreListRequest()); }
+    catch (IOException e) { System.err.println("Failed requesting stores: " + e.getMessage()); }
+  }
+
+  private void buildStoreCheckboxes(java.util.List<Store> stores) {
+    if (storesBox == null) return;
+    storesBox.getChildren().clear();
+    java.util.Set<Store> current = item != null ? item.getStores() : java.util.Collections.emptySet();
+    for (Store st : stores) {
+      CheckBox cb = new CheckBox(st.getStoreName());
+      cb.setUserData(st);
+      cb.setSelected(current.stream().anyMatch(s -> s.getStoreId()!=null && s.getStoreId().equals(st.getStoreId())));
+      storesBox.getChildren().add(cb);
+    }
+    storesLoaded = true;
+  }
+
+  private void syncStoreCheckboxesSelection() {
+    if (storesBox == null || item == null) return;
+    java.util.Set<Integer> itemStoreIds = new java.util.HashSet<>();
+    for (Store s : item.getStores()) if (s.getStoreId()!=null) itemStoreIds.add(s.getStoreId());
+    for (Node n : storesBox.getChildren()) {
+      if (n instanceof CheckBox) {
+        CheckBox cb = (CheckBox) n;
+        Object ud = cb.getUserData();
+        if (ud instanceof Store) {
+          Store st = (Store) ud;
+          cb.setSelected(st.getStoreId()!=null && itemStoreIds.contains(st.getStoreId()));
+        }
+      }
+    }
+  }
+
+  private void updateStoresValueLabel() {
+    if (storesValueLabel == null || item == null) return;
+    if (item.getStores()==null || item.getStores().isEmpty()) {
+      storesViewLabel.setVisible(false);
+      storesValueLabel.setVisible(false);
+      storesValueLabel.setText("");
+    } else {
+      storesViewLabel.setVisible(true);
+      storesValueLabel.setVisible(true);
+      String names = item.getStores().stream()
+              .filter(s -> s != null && s.getStoreName()!=null)
+              .map(Store::getStoreName)
+              .sorted()
+              .reduce((a,b)->a+", "+b)
+              .orElse("");
+      storesValueLabel.setText(names);
+    }
+  }
+
   public void setItemId(String itemId) {
     this.itemId = itemId;
   }
 
   public String getItemId() {
     return itemId;
+  }
+
+  @Subscribe
+  public void onStoreListResponse(StoreListResponse response) {
+    Platform.runLater(() -> {
+      if (!response.isSuccess()) {
+        System.err.println("Failed loading stores for item edit: " + response.getMessage());
+        return;
+      }
+      buildStoreCheckboxes(response.getStores());
+    });
   }
 }

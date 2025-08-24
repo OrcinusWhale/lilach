@@ -72,6 +72,10 @@
                         </children>
                      </HBox>
 
+                     <!-- Stores Row (spanning columns) -->
+                     <Label text="Stores:" GridPane.rowIndex="5" />
+                     <VBox fx:id="storesBox" spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="stores-box" />
+
                   </GridPane>
 
                   <HBox alignment="CENTER_LEFT" spacing="14">

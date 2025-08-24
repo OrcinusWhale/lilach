@@ -6,13 +6,19 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.AddResponseEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
+import il.cshaifasweng.OCSFMediatorExample.entities.Store;
+import il.cshaifasweng.OCSFMediatorExample.entities.StoreListRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.StoreListResponse;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -66,6 +72,9 @@ public class AddController {
 
     @FXML
     private AnchorPane root;
+
+    @FXML
+    private VBox storesBox; // container for dynamic store checkboxes
 
     private FileChooser fileChooser = new FileChooser();
 
@@ -151,6 +160,17 @@ public class AddController {
         }
         Item item = new Item(name, type, price);
         item.setSalePrice(sale);
+        // Attach selected stores
+        if (storesBox != null) {
+            for (Node node : storesBox.getChildren()) {
+                if (node instanceof CheckBox) {
+                    CheckBox cb = (CheckBox) node;
+                    if (cb.isSelected() && cb.getUserData() instanceof Store) {
+                        item.addStore((Store) cb.getUserData());
+                    }
+                }
+            }
+        }
         if (imageCheck.isSelected() && selectedImage != null) {
             item.setImageFile(selectedImage);
             item.loadImage();
@@ -219,6 +239,13 @@ public class AddController {
         // Initialize sale/image toggles so hidden state respects checkbox
         toggleSale(null);
         toggleBrowse(null);
+
+        // Load stores list from server
+        try {
+            App.getClient().sendToServer(new StoreListRequest());
+        } catch (IOException e) {
+            System.err.println("Failed to request stores: " + e.getMessage());
+        }
     }
 
     @Subscribe
@@ -227,5 +254,25 @@ public class AddController {
         if (response.equals("add success")) {
             successLabel.setVisible(true);
         }
+    }
+
+    @Subscribe
+    public void onStoreListResponse(StoreListResponse response) {
+        Platform.runLater(() -> {
+            if (storesBox == null) return;
+            storesBox.getChildren().clear();
+            if (response.isSuccess() && response.getStores() != null) {
+                for (Store store : response.getStores()) {
+                    CheckBox cb = new CheckBox(store.getStoreName());
+                    cb.setUserData(store); // keep reference for later
+                    cb.setSelected(true); // default: available everywhere
+                    storesBox.getChildren().add(cb);
+                }
+            } else {
+                Label err = new Label("Failed to load stores");
+                err.getStyleClass().add("feedback-label");
+                storesBox.getChildren().add(err);
+            }
+        });
     }
 }
