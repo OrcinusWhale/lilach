@@ -1,32 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.geometry.Pos?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane onMousePressed="#loadItem" prefHeight="200.0" prefWidth="200.0" style="-fx-border-width: 1; -fx-border-color: black;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ItemController">
-   <children>
-      <Label fx:id="nameLabel" layoutX="4.0" layoutY="108.0" prefHeight="35.0" prefWidth="192.0" text="Flowers" wrapText="true">
-         <font>
-            <Font size="24.0" />
-         </font>
-      </Label>
-      <Label fx:id="typeLabel" layoutX="4.0" layoutY="143.0" prefHeight="22.0" prefWidth="192.0" text="Bouquet">
-         <font>
-            <Font size="16.0" />
-         </font>
-      </Label>
-      <Label fx:id="priceLabel" layoutX="2.0" layoutY="165.0" prefHeight="35.0" prefWidth="100.0" stylesheets="@strikethrough.css" text="price">
-         <font>
-            <Font size="24.0" />
-         </font>
-      </Label>
-      <ImageView fx:id="imageView" fitHeight="100.0" fitWidth="100.0" layoutX="50.0" layoutY="8.0" pickOnBounds="true" preserveRatio="true" />
-      <Label fx:id="saleLabel" layoutX="100.0" layoutY="165.0" text="Sale" textFill="RED">
-         <font>
-            <Font size="24.0" />
-         </font>
-      </Label>
-   </children>
-</AnchorPane>
+<VBox fx:id="root" onMouseClicked="#loadItem" spacing="6" alignment="TOP_CENTER" prefWidth="220" minWidth="180" maxWidth="260" styleClass="item-card" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ItemController">
+  <children>
+    <ImageView fx:id="imageView" fitHeight="140.0" fitWidth="180.0" preserveRatio="true" />
+    <Label fx:id="nameLabel" wrapText="true" alignment="CENTER" text="Item Name" styleClass="item-name">
+      <font><Font size="20" /></font>
+    </Label>
+    <Label fx:id="typeLabel" text="Type" styleClass="item-type" />
+    <HBox alignment="CENTER" spacing="8">
+      <children>
+        <Label fx:id="priceLabel" text="Price" styleClass="item-price original-price" />
+        <Label fx:id="saleLabel" text="Sale" visible="false" managed="false" styleClass="item-price sale-price" />
+      </children>
+    </HBox>
+  </children>
+</VBox>

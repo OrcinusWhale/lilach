@@ -24,7 +24,7 @@ public class UserSession {
     }
 
     public static boolean isLoggedIn() {
-        return currentUser != null && sessionId != null;
+        return currentUser != null;
     }
 
     public static void clearSession() {

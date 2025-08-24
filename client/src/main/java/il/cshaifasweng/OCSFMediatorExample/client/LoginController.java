@@ -36,6 +36,9 @@ public class LoginController implements Initializable {
     @FXML
     private Label errorLabel;
 
+    @FXML
+    private TextField ipField; // New field for server IP
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         EventBus.getDefault().register(this);
@@ -45,6 +48,13 @@ public class LoginController implements Initializable {
     void handleLogin(ActionEvent event) {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
+        String ipAddress = ipField.getText().trim();
+        SimpleClient.setHostIp(ipAddress);
+        try {
+            App.connect();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         if (username.isEmpty() || password.isEmpty()) {
             showError("Please enter both username and password");

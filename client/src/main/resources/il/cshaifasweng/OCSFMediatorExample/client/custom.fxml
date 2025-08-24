@@ -1,53 +1,113 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
+<BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CustomOrderController"
+            prefWidth="720.0" prefHeight="720.0" stylesheets="@catalogue.css,@custom.css"
+            styleClass="custom-root" fx:id="rootPane">
+    <!-- Top bar -->
+    <top>
+        <HBox spacing="16" alignment="CENTER_LEFT" BorderPane.alignment="CENTER" styleClass="toolbar">
+            <children>
+                <Button text="Back" onAction="#backToCatalogue" styleClass="outline-btn" />
+                <Label text="Custom Order" styleClass="title-label" />
+            </children>
+        </HBox>
+    </top>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CustomOrderController">
-   <children>
-      <Label layoutX="256.0" layoutY="77.0" text="Custom order">
-         <font>
-            <Font size="32.0" />
-         </font>
-      </Label>
-      <Button layoutX="52.0" layoutY="51.0" mnemonicParsing="false" onAction="#backToCatalogue" text="Back to catalogue" />
-      <TextField fx:id="itemTF" layoutX="210.0" layoutY="155.0" />
-      <TextField fx:id="priceTF1" layoutX="171.0" layoutY="204.0" prefHeight="26.0" prefWidth="46.0" />
-      <TextField fx:id="colorTF" layoutX="256.0" layoutY="248.0" />
-      <TextArea fx:id="descTF" layoutX="52.0" layoutY="318.0" prefHeight="156.0" prefWidth="546.0" />
-      <Label layoutX="52.0" layoutY="153.0" text="Requested item:">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Label layoutX="52.0" layoutY="201.0" text="Price range:">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Label layoutX="223.0" layoutY="206.0" text="to">
-         <font>
-            <Font size="16.0" />
-         </font>
-      </Label>
-      <TextField fx:id="priceTF2" layoutX="245.0" layoutY="204.0" prefHeight="26.0" prefWidth="46.0" />
-      <Label layoutX="52.0" layoutY="245.0" text="Main color (optional):">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Label layoutX="52.0" layoutY="282.0" text="Please provide a description (optional):">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Button layoutX="52.0" layoutY="492.0" mnemonicParsing="false" onAction="#addToCart" text="Add to cart" />
-      <Label fx:id="itemError" layoutX="378.0" layoutY="159.0" text="This field is mendatory" textFill="RED" visible="false" />
-      <Label fx:id="priceError" layoutX="300.0" layoutY="208.0" text="Invalid price" textFill="RED" visible="false" />
-   </children>
-</AnchorPane>
+    <!-- Center content inside a ScrollPane for responsiveness -->
+    <center>
+        <ScrollPane fitToWidth="true" pannable="true" hbarPolicy="NEVER">
+            <content>
+                <VBox spacing="28" styleClass="form-wrapper" maxWidth="640" fx:id="formWrapper">
+                    <children>
+                        <Label text="Tell us what you have in mind" styleClass="section-heading" />
+
+                        <!-- Form grid -->
+                        <GridPane hgap="18" vgap="14" styleClass="form-grid" fx:id="formGrid">
+                            <columnConstraints>
+                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" percentWidth="30" />
+                                <ColumnConstraints hgrow="ALWAYS" percentWidth="70" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints vgrow="NEVER" />
+                                <RowConstraints vgrow="NEVER" />
+                                <RowConstraints vgrow="NEVER" />
+                                <RowConstraints vgrow="SOMETIMES" />
+                            </rowConstraints>
+
+                            <!-- Requested item -->
+                            <children>
+                                <Label text="Requested item:" GridPane.rowIndex="0" />
+                                <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                    <children>
+                                        <TextField fx:id="itemTF" promptText="e.g. Spring bouquet with lilies" />
+                                        <Label fx:id="itemError" text="This field is mandatory" textFill="RED" visible="false" />
+                                    </children>
+                                </VBox>
+
+                                <!-- Price range -->
+                                <Label text="Price range:" GridPane.rowIndex="1" />
+                                <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                    <children>
+                                        <HBox spacing="8">
+                                            <children>
+                                                <TextField fx:id="priceTF1" promptText="Min" prefWidth="80" />
+                                                <Label text="to" />
+                                                <TextField fx:id="priceTF2" promptText="Max" prefWidth="80" />
+                                            </children>
+                                        </HBox>
+                                        <Label fx:id="priceError" text="Invalid price range" textFill="RED" visible="false" />
+                                    </children>
+                                </VBox>
+
+                                <!-- Main color -->
+                                <Label text="Main color (optional):" GridPane.rowIndex="2" />
+                                <TextField fx:id="colorTF" GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="e.g. White / Pastel" />
+
+                                <!-- Description -->
+                                <Label text="Description (optional):" GridPane.rowIndex="3" />
+                                <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                    <children>
+                                        <TextArea fx:id="descTF" prefRowCount="5" wrapText="true" promptText="Any additional notes, flowers to include / avoid, style, size..." />
+                                    </children>
+                                </VBox>
+                            </children>
+                        </GridPane>
+
+                        <!-- Actions & feedback -->
+                        <VBox spacing="12">
+                            <children>
+                                <HBox spacing="12">
+                                    <children>
+                                        <Button text="Add to cart" onAction="#addToCart" styleClass="primary-btn" />
+                                    </children>
+                                </HBox>
+                                <StackPane>
+                                    <children>
+                                        <Label fx:id="requestError" text="Error" visible="false" styleClass="feedback-label error-badge" />
+                                        <Label fx:id="requestSuccess" text="Success" visible="false" styleClass="feedback-label success-badge" />
+                                    </children>
+                                </StackPane>
+                            </children>
+                        </VBox>
+                    </children>
+                    <padding>
+                        <Insets top="32" right="32" bottom="64" left="32" />
+                    </padding>
+                </VBox>
+            </content>
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10" />
+            </padding>
+        </ScrollPane>
+    </center>
+
+    <padding>
+        <Insets top="20" right="24" bottom="20" left="24" />
+    </padding>
+</BorderPane>

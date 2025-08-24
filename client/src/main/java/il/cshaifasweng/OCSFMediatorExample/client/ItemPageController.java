@@ -9,6 +9,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -32,6 +35,13 @@ public class ItemPageController {
   @FXML
   private ImageView imageView;
 
+  // New responsive layout roots
+  @FXML
+  private AnchorPane rootPane;
+
+  @FXML
+  private HBox contentFlow; // now an HBox (no wrapping)
+
   @FXML // fx:id="idLabel"
   private Label idLabel; // Value injected by FXMLLoader
 
@@ -43,8 +53,14 @@ public class ItemPageController {
   @FXML // fx:id="priceLabel"
   private Label priceLabel; // Value injected by FXMLLoader
 
+  @FXML
+  private Label priceValueLabel; // new dynamic price value label
+
   @FXML // fx:id="typeLabel"
   private Label typeLabel; // Value injected by FXMLLoader
+
+  @FXML
+  private Label typeValueLabel; // new label for type value in view mode
 
   @FXML
   private Button backBtn;
@@ -95,6 +111,9 @@ public class ItemPageController {
   private CheckBox saleCheck;
 
   @FXML
+  private VBox deleteSection; // added field for delete section container
+
+  @FXML
   private TextField saleTF;
 
   @FXML
@@ -128,6 +147,8 @@ public class ItemPageController {
   private boolean edit = false;
 
   private boolean delete = false;
+
+  private double originalImageSize = 400; // baseline size; won't grow beyond this
 
   @FXML
   void backToCatalogue(ActionEvent event) {
@@ -239,15 +260,25 @@ public class ItemPageController {
     edit = !edit;
     editBtn.setDisable(edit);
     editBtn.setVisible(!edit);
+
+    // Name
     nameTF.setDisable(!edit);
     nameTF.setVisible(edit);
+    nameLabel.setVisible(!edit);
+
+    // Type: label always visible; value label in view mode; text field in edit
     typeTF.setDisable(!edit);
     typeTF.setVisible(edit);
+    typeLabel.setVisible(true);
+    if (typeValueLabel != null) typeValueLabel.setVisible(!edit);
+
+    // Price & sale: show value label in view mode, text field in edit mode
     priceTF.setDisable(!edit);
     priceTF.setVisible(edit);
+    priceValueLabel.setVisible(!edit);
     boolean onSale = (item.getSalePrice() != -1);
     saleCheck.setSelected(onSale);
-    priceLabel.getStyleClass().remove("strikethrough");
+    priceValueLabel.getStyleClass().remove("strikethrough");
     if (onSale) {
       saleTF.setDisable(!edit);
       saleTF.setVisible(edit);
@@ -255,18 +286,37 @@ public class ItemPageController {
     } else {
       saleTF.setDisable(true);
       saleTF.setVisible(false);
+      saleLabel.setVisible(false);
+      if (!edit) saleTF.clear();
     }
     saleCheck.setDisable(!edit);
     saleCheck.setVisible(edit);
+
+    // Prefill fields when entering edit
+    if (edit && item != null) {
+      typeTF.setText(item.getType());
+      priceTF.setText(String.valueOf(item.getPrice()));
+      if (onSale) {
+        saleTF.setText(String.valueOf(item.getSalePrice()));
+      }
+    } else if (!edit) {
+      typeTF.clear();
+      priceTF.clear();
+    }
+
+    // Image controls
     imageCheck.setDisable(!edit);
     imageCheck.setVisible(edit);
     browseBtn.setDisable(!edit);
     browseBtn.setVisible(edit);
     selectedImageLabel.setVisible(edit);
+
+    // Confirm / Cancel
     confirmBtn.setDisable(!edit);
     confirmBtn.setVisible(edit);
     cancelBtn.setDisable(!edit);
     cancelBtn.setVisible(edit);
+
     imageView.setVisible(!edit);
     priceErrorLabel.setVisible(false);
   }
@@ -315,6 +365,7 @@ public class ItemPageController {
     String type = typeTF.getText();
     if (!type.isEmpty()) {
       item.setType(type);
+      if (typeValueLabel != null) typeValueLabel.setText(type); // immediate UI update
     }
     try {
       App.getClient().sendToServer(item);
@@ -343,11 +394,16 @@ public class ItemPageController {
 
   @FXML
   void toggleDelete(ActionEvent event) {
+    // Prevent customers from accessing delete flow
+    User currentUser = UserSession.getCurrentUser();
+    if (currentUser != null && currentUser.isCustomer()) {
+      return; // ignore
+    }
     delete = !delete;
     checkDeleteBtn.setVisible(!delete);
     checkDeleteBtn.setDisable(delete);
     deleteLabel.setVisible(delete);
-    deleteLabel.setDisable(!delete);
+    deleteLabel.setManaged(delete); // collapse space when hidden
     deleteBtn.setVisible(delete);
     deleteBtn.setDisable(!delete);
     cancelDeleteBtn.setVisible(delete);
@@ -375,16 +431,13 @@ public class ItemPageController {
         nameLabel.setText(item.getName());
         nameTF.setPromptText(item.getName());
         int salePrice = item.getSalePrice();
-        priceLabel.setText("Price: " + item.getPrice() + "$");
         priceLabel.setVisible(true);
-        
-        // Clear any previous styling first
-        priceLabel.getStyleClass().remove("strikethrough");
+        priceValueLabel.setText(item.getPrice() + "$" );
+        priceValueLabel.setVisible(!edit);
+        priceValueLabel.getStyleClass().remove("strikethrough");
         saleLabel.setVisible(false);
-        
-        // Only show sale if there's actually a valid sale price (not -1 and different from regular price)
         if (salePrice > 0 && salePrice != item.getPrice()) {
-          priceLabel.getStyleClass().add("strikethrough");
+          priceValueLabel.getStyleClass().add("strikethrough");
           saleLabel.setText("SALE: " + salePrice + "$");
           saleLabel.setVisible(true);
           saleTF.setPromptText("" + salePrice);
@@ -392,8 +445,12 @@ public class ItemPageController {
           saleTF.setPromptText("");
         }
         priceTF.setPromptText("" + item.getPrice());
-        typeLabel.setText("Item type: " + item.getType());
+        typeLabel.setText("Type:");
         typeLabel.setVisible(true);
+        if (typeValueLabel != null) {
+          typeValueLabel.setText(item.getType());
+          typeValueLabel.setVisible(!edit);
+        }
         typeTF.setPromptText(item.getType());
         if (!edit) {
           editBtn.setDisable(false);
@@ -401,19 +458,7 @@ public class ItemPageController {
         }
         checkDeleteBtn.setDisable(false);
         checkDeleteBtn.setVisible(true);
-        
-        // Show cart functionality for customers (including all customer types)
-        User currentUser = UserSession.getCurrentUser();
-        if (currentUser != null && (currentUser.isCustomer() || currentUser.isStoreSpecific() || currentUser.isBrandUser())) {
-          addToCartButton.setVisible(true);
-          addToCartButton.setDisable(false);
-          quantityField.setVisible(true);
-          specialRequestsArea.setVisible(true);
-          viewCartButton.setVisible(true);
-          if (addToCartLabel != null) addToCartLabel.setVisible(true);
-          if (quantityLabel != null) quantityLabel.setVisible(true);
-          if (specialRequestsLabel != null) specialRequestsLabel.setVisible(true);
-        }
+        applyPermissions();
         byte[] image = item.getImage();
         if (image != null) {
           imageView.setImage(new Image(new ByteArrayInputStream(image)));
@@ -430,31 +475,76 @@ public class ItemPageController {
     fileChooser.setTitle("Choose image");
     fileChooser.getExtensionFilters().addAll(
         new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif", "*.bmp"));
-    
-    // Initialize cart components
+
+    if (imageView != null) {
+      originalImageSize = imageView.getFitWidth() > 0 ? imageView.getFitWidth() : originalImageSize;
+    }
+
+    // Responsive image sizing only (no wrap logic needed now)
+    if (rootPane != null && imageView != null) {
+      rootPane.widthProperty().addListener((obs, oldV, newV) -> {
+        double w = newV.doubleValue();
+        double target = Math.min(originalImageSize, Math.max(260, w * 0.42));
+        if (target != imageView.getFitWidth()) {
+          imageView.setFitWidth(target);
+          imageView.setFitHeight(target);
+        }
+      });
+    }
+
     if (quantityField != null) {
       quantityField.setText("1");
     }
-    
-    // Show cart functionality for logged in customers
+
     User currentUser = UserSession.getCurrentUser();
-    if (currentUser != null && (currentUser.isCustomer() || currentUser.isStoreSpecific() || currentUser.isBrandUser())) {
-      if (addToCartButton != null) addToCartButton.setVisible(true);
-      if (quantityField != null) quantityField.setVisible(true);
-      if (specialRequestsArea != null) specialRequestsArea.setVisible(true);
-      if (viewCartButton != null) viewCartButton.setVisible(true);
-      if (addToCartLabel != null) addToCartLabel.setVisible(true);
-      if (quantityLabel != null) quantityLabel.setVisible(true);
-      if (specialRequestsLabel != null) specialRequestsLabel.setVisible(true);
-    } else {
-      // Hide cart functionality for non-customers
-      if (addToCartButton != null) addToCartButton.setVisible(false);
-      if (quantityField != null) quantityField.setVisible(false);
-      if (specialRequestsArea != null) specialRequestsArea.setVisible(false);
-      if (viewCartButton != null) viewCartButton.setVisible(false);
-      if (addToCartLabel != null) addToCartLabel.setVisible(false);
-      if (quantityLabel != null) quantityLabel.setVisible(false);
-      if (specialRequestsLabel != null) specialRequestsLabel.setVisible(false);
+    boolean permitted = currentUser != null && (currentUser.isCustomer() || currentUser.isStoreSpecific() || currentUser.isBrandUser());
+    setCartControlsVisibility(true);
+    setCartControlsDisable(!permitted);
+    // Ensure initial permissions for edit/delete buttons
+    applyPermissions();
+  }
+
+  private void setCartControlsVisibility(boolean visible) {
+    if (addToCartButton != null) addToCartButton.setVisible(visible);
+    if (quantityField != null) quantityField.setVisible(visible);
+    if (specialRequestsArea != null) specialRequestsArea.setVisible(visible);
+    if (viewCartButton != null) viewCartButton.setVisible(visible);
+    if (addToCartLabel != null) addToCartLabel.setVisible(visible);
+    if (quantityLabel != null) quantityLabel.setVisible(visible);
+    if (specialRequestsLabel != null) specialRequestsLabel.setVisible(visible);
+  }
+
+  private void setCartControlsDisable(boolean disable) {
+    if (addToCartButton != null) addToCartButton.setDisable(disable);
+    if (quantityField != null) quantityField.setDisable(disable);
+    if (specialRequestsArea != null) specialRequestsArea.setDisable(disable);
+    if (viewCartButton != null) viewCartButton.setDisable(disable);
+  }
+
+  private void applyPermissions() {
+    User currentUser = UserSession.getCurrentUser();
+    boolean isCustomer = currentUser != null && currentUser.isCustomer();
+    if (editBtn != null && isCustomer) {
+      editBtn.setVisible(false);
+      editBtn.setDisable(true);
+    }
+    if (deleteBtn != null && isCustomer) {
+      deleteBtn.setVisible(false);
+      deleteBtn.setDisable(true);
+    }
+    if (checkDeleteBtn != null && isCustomer) {
+      checkDeleteBtn.setVisible(false);
+      checkDeleteBtn.setDisable(true);
+    }
+    if (deleteSection != null) {
+      if (isCustomer) {
+        deleteSection.setVisible(false);
+        deleteSection.setManaged(false); // remove layout space
+      } else {
+        // Only re-enable if not in delete confirmation state incorrectly
+        deleteSection.setManaged(true);
+        deleteSection.setVisible(true);
+      }
     }
   }
 

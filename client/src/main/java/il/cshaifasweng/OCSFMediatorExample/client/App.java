@@ -22,24 +22,16 @@ public class App extends Application {
   @Override
   public void start(Stage stage) throws IOException {
     App.stage = stage;
-    scene = new Scene(loadFXML("login"), 720, 720);
+    scene = new Scene(loadFXML("login"), 1025, 720);
     stage.setScene(scene);
     stage.show();
-    
-    // Initialize connection
-    try {
-      connect();
-    } catch (IOException e) {
-      System.err.println("Failed to connect to server: " + e.getMessage());
-    }
   }
 
   public static void connect() throws IOException {
     client = SimpleClient.getClient();
     client.openConnection();
     System.out.println("Client connected to server successfully");
-    // Remove the automatic "add" message - this was causing issues
-    // client.sendToServer("add");
+    client.sendToServer("add");
   }
 
   static void setRoot(String fxml) throws IOException {

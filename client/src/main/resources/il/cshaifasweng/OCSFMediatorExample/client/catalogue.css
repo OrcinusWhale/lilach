@@ -1,0 +1,49 @@
+/* Catalogue & Item styling */
+
+.catalogue-root { -fx-background-color: linear-gradient(to bottom, #fafafa, #f2f2f7); -fx-spacing: 16px; }
+
+/*************************** Toolbar ***************************/
+.toolbar { -fx-padding: 12 20 12 20; -fx-background-color: rgba(255,255,255,0.9); -fx-background-radius: 18; -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.12), 12, 0.2, 0, 4); }
+.title-label { -fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2d2d2d; -fx-effect: dropshadow( gaussian , rgba(255,255,255,0.6) , 2,0,0,1 ); }
+
+/*************************** Filter Bar ***************************/
+.filter-bar { -fx-padding: 10 16 10 16; -fx-background-color: rgba(255,255,255,0.75); -fx-background-radius: 14; -fx-alignment: CENTER_LEFT; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.15, 0, 2); }
+.loading-label { -fx-text-fill: #888; -fx-font-style: italic; }
+.items-flow { -fx-padding: 8 8 32 8; }
+
+/*************************** Buttons ***************************/
+.button { -fx-cursor: hand; -fx-font-size: 14px; -fx-font-weight: 600; -fx-background-radius: 10; -fx-padding: 8 16 8 16; -fx-text-fill: #333; -fx-background-color: linear-gradient(to bottom, #fdfdfd, #ececec); -fx-border-color: rgba(0,0,0,0.08); -fx-border-radius: 10; -fx-border-width: 1; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 4, 0.2, 0, 1); }
+.button:hover { -fx-background-color: linear-gradient(to bottom, #ffffff, #e8e8e8); }
+.button:pressed { -fx-background-color: linear-gradient(to bottom, #e2e2e2, #f5f5f5); }
+.primary-btn { -fx-background-color: linear-gradient(to right, #4a90e2, #3579c3); -fx-text-fill: white; -fx-border-color: transparent; }
+.primary-btn:hover { -fx-background-color: linear-gradient(to right, #5aa0f2, #4389d6); }
+.primary-btn:pressed { -fx-background-color: linear-gradient(to right, #326aa7, #295b92); }
+.secondary-btn { -fx-background-color: linear-gradient(to right, #9b9b9b, #7d7d7d); -fx-text-fill: white; -fx-border-color: transparent; }
+.secondary-btn:hover { -fx-background-color: linear-gradient(to right, #b0b0b0, #8f8f8f); }
+.accent-btn { -fx-background-color: linear-gradient(to right, #ff9e2c, #ff7b00); -fx-text-fill: white; -fx-border-color: transparent; }
+.accent-btn:disabled { -fx-opacity: 0.6; }
+.accent-btn:hover { -fx-background-color: linear-gradient(to right, #ffb454, #ff8d21); }
+.outline-btn { -fx-background-color: transparent; -fx-border-color: #3579c3; -fx-text-fill: #3579c3; -fx-border-radius: 10; -fx-background-radius: 10; }
+.outline-btn:hover { -fx-background-color: rgba(53,121,195,0.08); }
+
+/*************************** Item Card ***************************/
+/* Hover effect kept minimal to avoid layout thrash */
+.item-card { -fx-background-color: white; -fx-background-radius: 18; -fx-padding: 14 14 16 14; -fx-spacing: 6; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 12, 0.25, 0, 4); -fx-alignment: TOP_CENTER; -fx-opacity: 1; -fx-cache: true; -fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 18; }
+
+.item-name { -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e3a46; }
+.item-type { -fx-text-fill: #6f7b85; -fx-font-size: 13px; }
+.item-price { -fx-font-size: 16px; -fx-font-weight: 600; }
+.original-price { -fx-text-fill: #37424c; }
+.sale-price { -fx-text-fill: #e53935; -fx-font-weight: 700; }
+.strikethrough .text { -fx-strikethrough: true; }
+
+/*************************** ScrollPane tweaks ***************************/
+.scroll-pane > .viewport { -fx-background-color: transparent; }
+.scroll-pane { -fx-background-color: linear-gradient(to bottom, #e9eef3, #dfe5ec); -fx-fit-to-width: true; }
+
+/*************************** ChoiceBox ***************************/
+.choice-box { -fx-background-radius: 8; -fx-background-color: #ffffff; -fx-border-color: rgba(0,0,0,0.1); -fx-border-radius: 8; }
+.choice-box:hover { -fx-border-color: #3579c3; }
+
+/*************************** Responsive helpers (manual via code) ***************************/
+/* Additional breakpoint classes are applied via controller */

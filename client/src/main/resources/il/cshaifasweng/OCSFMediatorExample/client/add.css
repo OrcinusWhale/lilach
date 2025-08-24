@@ -1,0 +1,35 @@
+/* Add Item Screen Styling */
+
+.add-root { -fx-background-color: linear-gradient(to bottom right, #f4f8fb, #e5edf4); }
+
+/* Base form styling (reuses shared rules from custom.css for fields) */
+.add-root .form-grid > .label { -fx-font-size: 15px; -fx-text-fill: #37424c; -fx-font-weight: 600; }
+
+/* Inputs */
+.add-root .text-field { -fx-background-color: white; -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: rgba(0,0,0,0.15); -fx-border-width: 1; -fx-padding: 8 12 8 12; -fx-font-size: 14px; }
+.add-root .text-field:focused { -fx-border-color: #3579c3; -fx-effect: dropshadow(gaussian, rgba(53,121,195,0.25), 6, 0.3, 0, 0); }
+
+/* Error field */
+.error-field { -fx-border-color: #e53935 !important; -fx-background-color: #fff5f5; }
+
+/* Feedback labels (inherits feedback-label core from custom.css) */
+.feedback-label { -fx-font-size: 12px; }
+
+/* Layout wrappers */
+.form-wrapper { -fx-background-color: rgba(255,255,255,0.75); -fx-padding: 26 28 32 28; -fx-background-radius: 24; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 18, 0.25, 0, 4); }
+
+/* Responsive: compact breakpoint ~640px */
+.add-root.compact .form-wrapper { -fx-padding: 20 20 26 20; }
+.add-root.compact .title-label { -fx-font-size: 26px; }
+.add-root.compact .form-grid { -fx-hgap: 12; -fx-vgap: 10; }
+.add-root.compact .primary-btn { -fx-min-width: 140; }
+
+/* Ultra compact (phone width <520) */
+.add-root.ultra-compact .form-grid { -fx-hgap: 8; -fx-vgap: 8; }
+.add-root.ultra-compact .title-label { -fx-font-size: 22px; }
+.add-root.ultra-compact .form-wrapper { -fx-padding: 16 16 22 16; }
+
+/* Subtle entrance */
+.add-root .form-wrapper { -fx-opacity: 0; }
+.add-root .form-wrapper { -fx-opacity: 1; }
+

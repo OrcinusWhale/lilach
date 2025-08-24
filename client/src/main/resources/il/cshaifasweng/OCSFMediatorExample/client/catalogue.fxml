@@ -1,64 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ChoiceBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CatalogueController">
-   <content>
-      <FlowPane fx:id="cataloguePane" hgap="16.0" prefHeight="720.0" prefWidth="704.0" vgap="16.0">
-         <children>
-            <Label alignment="CENTER" prefHeight="80.0" prefWidth="672.0" text="Catalogue">
-               <font>
-                  <Font size="32.0" />
-               </font>
+<ScrollPane fx:id="rootScroll" fitToWidth="true" prefHeight="720.0" prefWidth="960.0" vbarPolicy="ALWAYS" stylesheets="@catalogue.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CatalogueController">
+  <content>
+    <VBox fx:id="rootContainer" spacing="16" styleClass="catalogue-root">
+      <children>
+        <!-- Top toolbar -->
+        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="toolbar">
+          <children>
+            <Label text="Catalogue" styleClass="title-label">
+              <font><Font size="32" /></font>
             </Label>
-            <Label fx:id="loadingLabel" alignment="CENTER" prefHeight="29.0" prefWidth="672.0" text="Loading...">
-               <font>
-                  <Font size="24.0" />
-               </font>
-            </Label>
-            <Button fx:id="backBtn" mnemonicParsing="false" onAction="#goBack" style="-fx-background-color: #6c757d; -fx-text-fill: white;" text="← Back to Profile">
-               <FlowPane.margin>
-                  <Insets right="20.0" />
-               </FlowPane.margin>
-            </Button>
-            <Button fx:id="cartBtn" mnemonicParsing="false" onAction="#viewCart" style="-fx-background-color: #007bff; -fx-text-fill: white;" text="🛒 View Cart">
-               <FlowPane.margin>
-                  <Insets right="20.0" />
-               </FlowPane.margin>
-            </Button>
-            <Button fx:id="addBtn" disable="true" mnemonicParsing="false" onAction="#addItem" text="Add item">
-               <FlowPane.margin>
-                  <Insets right="1000.0" />
-               </FlowPane.margin>
-            </Button>
+            <Pane HBox.hgrow="ALWAYS" />
+            <Button fx:id="backBtn" onAction="#goBack" text="← Back" styleClass="secondary-btn" />
+            <Button fx:id="cartBtn" onAction="#viewCart" text="🛒 Cart" styleClass="primary-btn" />
+            <Button fx:id="addBtn" disable="true" onAction="#addItem" text="＋ Add Item" styleClass="accent-btn" />
+            <Button fx:id="customBtn" onAction="#customOrder" text="Custom Order" styleClass="outline-btn" />
+          </children>
+        </HBox>
+
+        <!-- Filter bar -->
+        <HBox fx:id="filterBar" spacing="12" alignment="CENTER_LEFT" styleClass="filter-bar">
+          <children>
             <Label text="Category:" />
-            <ChoiceBox fx:id="categoryBox" prefWidth="150.0" />
+            <ChoiceBox fx:id="categoryBox" prefWidth="160" />
             <Label text="Store:" />
-            <ChoiceBox fx:id="storeBox" prefWidth="150.0">
-               <FlowPane.margin>
-                  <Insets />
-               </FlowPane.margin>
-            </ChoiceBox>
-            <Button fx:id="filterBtn" mnemonicParsing="false" onAction="#filter" text="Filter">
-               <FlowPane.margin>
-                  <Insets right="100.0" />
-               </FlowPane.margin>
-            </Button>
-            <Button fx:id="customBtn" mnemonicParsing="false" onAction="#customOrder" text="Custom order">
-               <FlowPane.margin>
-                  <Insets right="10000.0" />
-               </FlowPane.margin>
-            </Button>
-         </children>
-         <padding>
-            <Insets left="16.0" right="16.0" />
-         </padding>
-      </FlowPane>
-   </content>
+            <ChoiceBox fx:id="storeBox" prefWidth="160" />
+            <Button fx:id="filterBtn" text="Filter" onAction="#filter" styleClass="outline-btn" />
+            <Label fx:id="loadingLabel" text="Loading..." styleClass="loading-label" />
+          </children>
+        </HBox>
+
+        <!-- Items flow -->
+        <FlowPane fx:id="cataloguePane" hgap="20" vgap="20" rowValignment="TOP" styleClass="items-flow">
+          <padding><Insets top="8" bottom="32" left="8" right="8" /></padding>
+        </FlowPane>
+      </children>
+      <padding>
+        <Insets top="20" left="24" right="24" bottom="24" />
+      </padding>
+    </VBox>
+  </content>
 </ScrollPane>
