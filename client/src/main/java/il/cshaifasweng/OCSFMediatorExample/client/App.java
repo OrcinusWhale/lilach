@@ -25,13 +25,6 @@ public class App extends Application {
     scene = new Scene(loadFXML("login"), 1025, 720);
     stage.setScene(scene);
     stage.show();
-    
-    // Initialize connection
-    try {
-      connect();
-    } catch (IOException e) {
-      System.err.println("Failed to connect to server: " + e.getMessage());
-    }
   }
 
   public static void connect() throws IOException {

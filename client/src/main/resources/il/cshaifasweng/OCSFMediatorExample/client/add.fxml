@@ -1,51 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.AddController">
+<AnchorPane fx:id="root" prefHeight="720.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.AddController" stylesheets="@catalogue.css, @custom.css, @add.css" styleClass="add-root">
    <children>
-      <Label alignment="CENTER" layoutY="58.0" prefWidth="720.0" text="Add item" textAlignment="CENTER" wrapText="true">
-         <font>
-            <Font size="32.0" />
-         </font>
-      </Label>
-      <Button fx:id="backBtn" layoutX="546.0" layoutY="32.0" mnemonicParsing="false" onAction="#backToCatalogue" text="Back to catalogue" />
-      <TextField fx:id="nameTF" layoutX="89.0" layoutY="125.0" />
-      <TextField fx:id="typeTF" layoutX="76.0" layoutY="167.0" />
-      <TextField fx:id="priceTF" layoutX="76.0" layoutY="207.0" />
-      <CheckBox fx:id="imageCheck" layoutX="14.0" layoutY="250.0" mnemonicParsing="false" onAction="#toggleBrowse" selected="true" text="Image:">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </CheckBox>
-      <Label layoutX="14.0" layoutY="123.0" text="Name:">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Label layoutX="15.0" layoutY="165.0" text="Type:">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Label layoutX="15.0" layoutY="205.0" text="Price:">
-         <font>
-            <Font size="20.0" />
-         </font>
-      </Label>
-      <Button fx:id="browseBtn" layoutX="127.0" layoutY="252.0" mnemonicParsing="false" onAction="#browseImage" text="Browse" />
-      <Label fx:id="selectedImageLabel" layoutX="194.0" layoutY="256.0" />
-      <Button fx:id="confirmBtn" layoutX="15.0" layoutY="297.0" mnemonicParsing="false" onAction="#addItem" text="Confirm" />
-      <Label fx:id="nameError" layoutX="264.0" layoutY="129.0" text="Name is required" textFill="RED" visible="false" />
-      <Label fx:id="typeError" layoutX="251.0" layoutY="171.0" text="Type is required" textFill="RED" visible="false" />
-      <Label fx:id="priceError" layoutX="471.0" layoutY="211.0" text="Invalid price" textFill="RED" visible="false" />
-      <Label fx:id="successLabel" layoutX="89.0" layoutY="301.0" text="Item added" textFill="#009600" visible="false" />
-      <CheckBox fx:id="saleCheck" layoutX="244.0" layoutY="211.0" mnemonicParsing="false" onAction="#toggleSale" selected="true" text="Sale:" />
-      <TextField fx:id="saleTF" layoutX="301.0" layoutY="207.0" />
+      <VBox spacing="28.0" AnchorPane.topAnchor="24.0" AnchorPane.leftAnchor="32.0" AnchorPane.rightAnchor="32.0" AnchorPane.bottomAnchor="32.0">
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="16">
+               <children>
+                  <Label text="Add Item" styleClass="title-label" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="backBtn" text="Back to catalogue" onAction="#backToCatalogue" styleClass="outline-btn" />
+               </children>
+            </HBox>
+
+            <VBox spacing="18" styleClass="form-wrapper">
+               <children>
+                  <GridPane hgap="20" vgap="14" styleClass="form-grid">
+                     <columnConstraints>
+                        <ColumnConstraints halignment="RIGHT" minWidth="90" prefWidth="120" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints minWidth="140" prefWidth="180" />
+                     </columnConstraints>
+
+                     <!-- Name Row -->
+                     <Label text="Name:" GridPane.rowIndex="0" />
+                     <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <children>
+                           <TextField fx:id="nameTF" promptText="Enter name" />
+                           <Label fx:id="nameError" text="Name is required" textFill="#c62828" visible="false" styleClass="feedback-label error-badge" />
+                        </children>
+                     </VBox>
+
+                     <!-- Type Row -->
+                     <Label text="Type:" GridPane.rowIndex="1" />
+                     <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <children>
+                           <TextField fx:id="typeTF" promptText="Enter type" />
+                           <Label fx:id="typeError" text="Type is required" textFill="#c62828" visible="false" styleClass="feedback-label error-badge" />
+                        </children>
+                     </VBox>
+
+                     <!-- Price Row -->
+                     <Label text="Price:" GridPane.rowIndex="2" />
+                     <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <children>
+                           <TextField fx:id="priceTF" promptText="Enter price" />
+                           <Label fx:id="priceError" text="Invalid price" textFill="#c62828" visible="false" styleClass="feedback-label error-badge" />
+                        </children>
+                     </VBox>
+
+                     <!-- Sale Row -->
+                     <Label text="Sale:" GridPane.rowIndex="3" />
+                     <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                        <children>
+                           <CheckBox fx:id="saleCheck" selected="true" onAction="#toggleSale" text="Enable" />
+                           <TextField fx:id="saleTF" promptText="Sale price" />
+                        </children>
+                     </HBox>
+
+                     <!-- Image Row -->
+                     <Label text="Image:" GridPane.rowIndex="4" />
+                     <HBox spacing="12" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                        <children>
+                           <CheckBox fx:id="imageCheck" selected="true" onAction="#toggleBrowse" text="Attach" />
+                           <Button fx:id="browseBtn" text="Browse" onAction="#browseImage" />
+                           <Label fx:id="selectedImageLabel" textFill="#555" />
+                        </children>
+                     </HBox>
+
+                  </GridPane>
+
+                  <HBox alignment="CENTER_LEFT" spacing="14">
+                     <children>
+                        <Button fx:id="confirmBtn" text="Confirm" onAction="#addItem" styleClass="primary-btn" />
+                        <Label fx:id="successLabel" text="Item added" textFill="#2e7d32" visible="false" styleClass="feedback-label success-badge" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </VBox>
    </children>
 </AnchorPane>

@@ -12,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -63,52 +64,91 @@ public class AddController {
     @FXML
     private TextField saleTF;
 
+    @FXML
+    private AnchorPane root;
+
     private FileChooser fileChooser = new FileChooser();
 
     private File selectedImage;
+
+    // Helper methods for styling errors
+    private void showFieldError(TextField tf, Label errorLabel) {
+        if (!tf.getStyleClass().contains("error-field")) {
+            tf.getStyleClass().add("error-field");
+        }
+        errorLabel.setVisible(true);
+    }
+
+    private void clearFieldError(TextField tf, Label errorLabel) {
+        tf.getStyleClass().remove("error-field");
+        errorLabel.setVisible(false);
+    }
+
+    private void applyBreakpoints(double width) {
+        var classes = root.getStyleClass();
+        classes.removeAll("compact", "ultra-compact");
+        if (width < 520) {
+            if (!classes.contains("ultra-compact")) classes.add("ultra-compact");
+        } else if (width < 640) {
+            if (!classes.contains("compact")) classes.add("compact");
+        }
+    }
 
     @FXML
     void addItem(ActionEvent event) {
         successLabel.setVisible(false);
         boolean error = false;
-        String name = nameTF.getText();
-        String type = typeTF.getText();
-        String priceString = priceTF.getText();
-        String saleString = saleTF.getText();
+        String name = nameTF.getText().trim();
+        String type = typeTF.getText().trim();
+        String priceString = priceTF.getText().trim();
+        String saleString = saleTF.getText().trim();
         int price = 0;
         int sale = -1;
+
+        // Reset previous errors
+        clearFieldError(nameTF, nameError);
+        clearFieldError(typeTF, typeError);
+        clearFieldError(priceTF, priceError);
+
         if (name.isEmpty()) {
-            nameError.setVisible(true);
+            showFieldError(nameTF, nameError);
             error = true;
         }
         if (type.isEmpty()) {
-            typeError.setVisible(true);
+            showFieldError(typeTF, typeError);
             error = true;
         }
         if (priceString.isEmpty()) {
-            priceError.setVisible(true);
+            showFieldError(priceTF, priceError);
             error = true;
+        } else {
+            try {
+                price = Integer.parseInt(priceString);
+                if (price <= 0) {
+                    showFieldError(priceTF, priceError);
+                    error = true;
+                }
+            } catch (NumberFormatException e) {
+                showFieldError(priceTF, priceError);
+                error = true;
+            }
         }
-        try {
-            price = Integer.parseInt(priceString);
-        } catch (NumberFormatException e) {
-            priceError.setVisible(true);
-            error = true;
-        }
-        if (!saleString.isEmpty()) {
-           try {
-               sale = Integer.parseInt(saleString);
-           } catch (NumberFormatException e) {
-               priceError.setVisible(true);
-               error = true;
-           }
+        if (!error && saleCheck.isSelected() && !saleString.isEmpty()) {
+            try {
+                sale = Integer.parseInt(saleString);
+                if (sale <= 0 || sale >= price) {
+                    // reuse price error label for invalid sale constraints
+                    showFieldError(priceTF, priceError);
+                    error = true;
+                }
+            } catch (NumberFormatException e) {
+                showFieldError(priceTF, priceError);
+                error = true;
+            }
         }
         if (error) {
             return;
         }
-        nameError.setVisible(false);
-        typeError.setVisible(false);
-        priceError.setVisible(false);
         Item item = new Item(name, type, price);
         item.setSalePrice(sale);
         if (imageCheck.isSelected() && selectedImage != null) {
@@ -165,6 +205,20 @@ public class AddController {
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif", "*.bmp")
         );
+
+        // Responsive width listener
+        root.widthProperty().addListener((obs, ov, nv) -> applyBreakpoints(nv.doubleValue()));
+        applyBreakpoints(root.getPrefWidth());
+
+        // Dynamic error clearing on user input
+        nameTF.textProperty().addListener((o, ov, nv) -> { if (!nv.isBlank()) clearFieldError(nameTF, nameError); });
+        typeTF.textProperty().addListener((o, ov, nv) -> { if (!nv.isBlank()) clearFieldError(typeTF, typeError); });
+        priceTF.textProperty().addListener((o, ov, nv) -> { if (!nv.isBlank()) clearFieldError(priceTF, priceError); });
+        saleTF.textProperty().addListener((o, ov, nv) -> { if (!nv.isBlank()) clearFieldError(priceTF, priceError); });
+
+        // Initialize sale/image toggles so hidden state respects checkbox
+        toggleSale(null);
+        toggleBrowse(null);
     }
 
     @Subscribe
