@@ -57,7 +57,9 @@ public class CatalogueController {
     this.items = items;
     Platform.runLater(() -> {
       cataloguePane.getChildren().remove(loadingLabel);
-      for (Item item : items) {
+      // Skip index 0 (Custom order placeholder)
+      for (int i = 1; i < items.size(); i++) {
+        Item item = items.get(i);
         System.out.println("Loading item: " + item.getName());
         loadItem(item);
       }

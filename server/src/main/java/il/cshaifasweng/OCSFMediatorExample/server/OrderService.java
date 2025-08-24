@@ -50,7 +50,7 @@ public class OrderService {
 
             // Create cart item
             CartItem cartItem = new CartItem(cart, item, request.getQuantity(), request.getSpecialRequests());
-            
+
             // Check if item already exists in cart
             CartItem existingItem = cart.findCartItemByItem(item);
             if (existingItem != null) {
@@ -64,16 +64,16 @@ public class OrderService {
                 session.saveOrUpdate(cartItem); // Save the new cart item
                 System.out.println("OrderService: Added new cart item with quantity " + cartItem.getQuantity());
             }
-            
+
             session.saveOrUpdate(cart);
             session.flush(); // Force immediate database write
             transaction.commit();
-            
+
             System.out.println("OrderService: Transaction committed successfully for addToCart");
 
             // Force initialization of cart items to avoid lazy loading issues
             cart.getCartItems().size(); // This triggers the lazy loading
-            
+
             // Also ensure item details are loaded for each cart item
             for (CartItem ci : cart.getCartItems()) {
                 if (ci.getItem() != null) {
@@ -85,7 +85,7 @@ public class OrderService {
 
             System.out.println("OrderService: Cart after adding item has " + cart.getCartItems().size() + " items");
             for (CartItem ci : cart.getCartItems()) {
-                System.out.println("OrderService: Cart item - " + ci.getItemName() + 
+                System.out.println("OrderService: Cart item - " + ci.getItemName() +
                                  ", Qty: " + ci.getQuantity() + ", Price: $" + ci.getPrice());
             }
 

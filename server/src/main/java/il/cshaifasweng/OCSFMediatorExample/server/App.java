@@ -51,7 +51,12 @@ public class App {
       imagesDir.mkdirs();
       System.out.println("Created images directory: " + imagesDir.getAbsolutePath());
     }
-    
+
+    // Insert the special Custom order item first so it receives the first generated ID (1)
+    // No image is required for this logical placeholder item
+    Item customOrder = new Item("Custom order", "Custom order", 1);
+    session.save(customOrder);
+
     List<String> itemNames = Arrays.asList("Orange Blossom", "White celebration", "Spring Celebration",
         "Sunflower Bouquet", "Lovely Bouquet");
     for (String name : itemNames) {

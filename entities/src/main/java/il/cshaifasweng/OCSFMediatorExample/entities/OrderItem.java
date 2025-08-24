@@ -55,7 +55,7 @@ public class OrderItem implements Serializable {
     public void setOrder(Order order) { this.order = order; }
 
     public Item getItem() { return item; }
-    public void setItem(Item item) { 
+    public void setItem(Item item) {
         this.item = item;
         // Update price when item changes
         if (item != null) {
