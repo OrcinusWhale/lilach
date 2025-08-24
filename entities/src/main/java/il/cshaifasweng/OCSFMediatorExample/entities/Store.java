@@ -4,6 +4,8 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "stores")
@@ -32,6 +34,9 @@ public class Store implements Serializable {
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<User> users = new ArrayList<>();
     
+    @ManyToMany(mappedBy = "stores")
+    private Set<Item> items = new HashSet<>();
+
     // Default constructor
     public Store() {}
     
@@ -107,6 +112,14 @@ public class Store implements Serializable {
         this.users = users;
     }
     
+    public Set<Item> getItems() {
+        return items;
+    }
+
+    public void setItems(Set<Item> items) {
+        this.items = items;
+    }
+
     // Helper methods
     public void addUser(User user) {
         users.add(user);
@@ -118,6 +131,20 @@ public class Store implements Serializable {
         user.setStore(null);
     }
     
+    public void addItem(Item item) {
+        if (item == null) return;
+        items.add(item);
+        if (!item.getStores().contains(this)) {
+            item.getStores().add(this);
+        }
+    }
+
+    public void removeItem(Item item) {
+        if (item == null) return;
+        items.remove(item);
+        item.getStores().remove(this);
+    }
+
     @Override
     public String toString() {
         return storeName;
