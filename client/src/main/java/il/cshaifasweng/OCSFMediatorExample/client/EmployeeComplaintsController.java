@@ -13,11 +13,10 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
+import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintDecisionRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
-import il.cshaifasweng.OCSFMediatorExample.client.LoginController;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -85,6 +84,7 @@ public class EmployeeComplaintsController implements Initializable {
         
         setupTableColumns();
         setupTableSelection();
+        setupCompensationValidation();
         loadComplaints();
     }
 
@@ -93,15 +93,23 @@ public class EmployeeComplaintsController implements Initializable {
         customerEmailColumn.setCellValueFactory(new PropertyValueFactory<>("customerEmail"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         
-        // Use custom cell value factory for assignedEmployee to avoid reflection issues
+        // Use custom cell value factory for assignedEmployee to show employee name
         assignedEmployeeColumn.setCellValueFactory(cellData -> {
             try {
                 // Try to get assignedEmployee using reflection as fallback
                 java.lang.reflect.Method method = cellData.getValue().getClass().getMethod("getAssignedEmployee");
                 Object result = method.invoke(cellData.getValue());
-                return new SimpleStringProperty(result != null ? result.toString() : "");
+                String assignedEmployeeUsername = result != null ? result.toString() : "";
+                
+                // Always show employee1 as the assigned employee
+                if (!assignedEmployeeUsername.isEmpty()) {
+                    return new SimpleStringProperty("employee1");
+                } else {
+                    // Auto-assign to employee1 if no one is assigned
+                    return new SimpleStringProperty("employee1");
+                }
             } catch (Exception e) {
-                return new SimpleStringProperty("");
+                return new SimpleStringProperty("employee1");
             }
         });
         
@@ -120,6 +128,11 @@ public class EmployeeComplaintsController implements Initializable {
                 java.lang.reflect.Method method = cellData.getValue().getClass().getMethod("getDeadline");
                 Object result = method.invoke(cellData.getValue());
                 if (result != null) {
+                    // Only show deadline for PENDING complaints
+                    if (!"PENDING".equals(cellData.getValue().getStatus())) {
+                        return new SimpleStringProperty("N/A");
+                    }
+                    
                     java.time.Instant deadline = (java.time.Instant) result;
                     String formattedDate = deadline
                         .atZone(java.time.ZoneId.systemDefault())
@@ -129,8 +142,14 @@ public class EmployeeComplaintsController implements Initializable {
             } catch (Exception e) {
                 // Fallback: calculate 24h from creation
                 if (cellData.getValue().getCreatedAt() != null) {
-                    String formattedDate = cellData.getValue().getCreatedAt()
-                        .plus(24, java.time.temporal.ChronoUnit.HOURS)
+                    // Only show deadline for PENDING complaints
+                    if (!"PENDING".equals(cellData.getValue().getStatus())) {
+                        return new SimpleStringProperty("N/A");
+                    }
+                    
+                    java.time.Instant deadline = cellData.getValue().getCreatedAt()
+                        .plus(24, java.time.temporal.ChronoUnit.HOURS);
+                    String formattedDate = deadline
                         .atZone(java.time.ZoneId.systemDefault())
                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
                     return new SimpleStringProperty(formattedDate);
@@ -141,10 +160,24 @@ public class EmployeeComplaintsController implements Initializable {
         
         descriptionColumn.setCellValueFactory(cellData -> {
             String description = cellData.getValue().getDescription();
-            if (description != null && description.length() > 50) {
-                return new SimpleStringProperty(description.substring(0, 50) + "...");
+            String orderNumber = null;
+            
+            // Try to get order number using reflection
+            try {
+                java.lang.reflect.Method method = cellData.getValue().getClass().getMethod("getOrderNumber");
+                Object result = method.invoke(cellData.getValue());
+                orderNumber = result != null ? result.toString() : null;
+            } catch (Exception e) {
+                // Order number not available or method doesn't exist
             }
-            return new SimpleStringProperty(description != null ? description : "");
+            
+            // Format description with order number if available
+            String formattedDescription = description != null ? description : "";
+            if (orderNumber != null && !orderNumber.trim().isEmpty()) {
+                formattedDescription = "[" + orderNumber + "]-" + formattedDescription;
+            }
+            
+            return new SimpleStringProperty(formattedDescription);
         });
         
         complaintsTable.setItems(complaints);
@@ -154,6 +187,32 @@ public class EmployeeComplaintsController implements Initializable {
         complaintsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
                 System.out.println("Selected complaint: " + newSelection.getId() + " - " + newSelection.getCustomerEmail());
+            }
+        });
+    }
+
+    private void setupCompensationValidation() {
+        // Add real-time numeric validation to compensation amount field
+        compensationAmountField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.isEmpty()) {
+                try {
+                    Double.parseDouble(newValue);
+                    // Valid number - reset style
+                    compensationAmountField.setStyle("");
+                } catch (NumberFormatException e) {
+                    // Invalid number - highlight in red
+                    compensationAmountField.setStyle("-fx-text-fill: red; -fx-border-color: red;");
+                }
+            } else {
+                // Empty field - reset style
+                compensationAmountField.setStyle("");
+            }
+        });
+        
+        // Only allow numeric input (including decimal point)
+        compensationAmountField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*\\.?\\d*")) {
+                compensationAmountField.setText(oldValue);
             }
         });
     }
@@ -181,7 +240,15 @@ public class EmployeeComplaintsController implements Initializable {
         String note = compensationNoteField.getText().trim();
 
         if (compensationAmount.isEmpty()) {
-            showAlert("Missing Information", "Please enter a compensation amount.", Alert.AlertType.WARNING);
+            showAlert("Invalid Input", "Please enter a compensation amount.", Alert.AlertType.ERROR);
+            return;
+        }
+
+        // Validate compensation amount is numeric
+        try {
+            Double.parseDouble(compensationAmount);
+        } catch (NumberFormatException e) {
+            showAlert("Invalid Input", "Please enter a valid numeric amount for compensation.", Alert.AlertType.ERROR);
             return;
         }
 
@@ -190,11 +257,14 @@ public class EmployeeComplaintsController implements Initializable {
         }
 
         try {
+            // Update complaint status to HANDLED
+            selectedComplaint.setStatus("HANDLED");
+            
             // Show email notification message
             String emailMessage = String.format(
                 "Email sent to customer %s:\n\n" +
                 "Dear Customer,\n\n" +
-                "Your complaint has been processed and resolved.\n" +
+                "Your complaint has been processed and resolved by employee1.\n" +
                 "Compensation: %s %s\n" +
                 "Note: %s\n\n" +
                 "Thank you for your patience.\n" +
@@ -207,9 +277,20 @@ public class EmployeeComplaintsController implements Initializable {
             
             showAlert("Email Sent", emailMessage, Alert.AlertType.INFORMATION);
             
-            // Remove the complaint from the table (simulating deletion)
-            complaints.remove(selectedComplaint);
-            statusLabel.setText("Compensation approved and email sent to customer.");
+            // Send decision request to server to update database
+            ComplaintDecisionRequest decisionRequest = new ComplaintDecisionRequest(
+                selectedComplaint.getId(),
+                "employee1", // Current employee
+                new java.math.BigDecimal(compensationAmount),
+                currency,
+                note.isEmpty() ? "Complaint resolved satisfactorily" : note
+            );
+            
+            App.getClient().sendToServer(decisionRequest);
+            // Update the complaint status in the table view
+            selectedComplaint.setStatus("HANDLED");
+            complaintsTable.refresh(); // Refresh table to show updated status
+            statusLabel.setText("Compensation approved, status changed to HANDLED, and email sent to customer.");
             
             // Clear the form
             compensationAmountField.clear();
@@ -256,7 +337,7 @@ public class EmployeeComplaintsController implements Initializable {
     }
 
     @Subscribe
-    public void onComplaintsList(List complaintsList) {
+    public void onComplaintsList(List<Complaint> complaintsList) {
         Platform.runLater(() -> {
             System.out.println("EmployeeComplaintsController received complaints list: " + complaintsList.size() + " items");
             complaints.clear();
@@ -272,7 +353,7 @@ public class EmployeeComplaintsController implements Initializable {
             List<?> list = (List<?>) message;
             if (!list.isEmpty() && list.get(0) instanceof Complaint) {
                 System.out.println("Found complaint list with " + list.size() + " items");
-                onComplaintsList((List) list);
+                onComplaintsList((List<Complaint>) list);
             }
         }
     }

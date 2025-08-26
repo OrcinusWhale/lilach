@@ -209,7 +209,7 @@ public class ComplaintService {
             complaint.setCompensationCurrency(request.getCurrency().trim());
             complaint.setDecisionAt(Instant.now());
             complaint.setDecisionNote(request.getNote() != null ? request.getNote().trim() : null);
-            complaint.setStatus("COMP_OFFERED");
+            complaint.setStatus("HANDLED");
             
             session.update(complaint);
             transaction.commit();

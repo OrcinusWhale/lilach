@@ -7,6 +7,7 @@ public class ComplaintRequest implements Serializable {
 
     private String customerEmail;
     private String description;
+    private String orderNumber;
 
     // Default constructor
     public ComplaintRequest() {}
@@ -15,6 +16,13 @@ public class ComplaintRequest implements Serializable {
     public ComplaintRequest(String customerEmail, String description) {
         this.customerEmail = customerEmail;
         this.description = description;
+    }
+
+    // Constructor with order number
+    public ComplaintRequest(String customerEmail, String description, String orderNumber) {
+        this.customerEmail = customerEmail;
+        this.description = description;
+        this.orderNumber = orderNumber;
     }
 
     // Getters and Setters
@@ -32,5 +40,13 @@ public class ComplaintRequest implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getOrderNumber() {
+        return orderNumber;
+    }
+
+    public void setOrderNumber(String orderNumber) {
+        this.orderNumber = orderNumber;
     }
 }

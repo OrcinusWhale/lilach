@@ -32,7 +32,7 @@
                   <TableColumn fx:id="assignedEmployeeColumn" prefWidth="120.0" text="Assigned Employee" />
                   <TableColumn fx:id="createdAtColumn" prefWidth="150.0" text="Created At" />
                   <TableColumn fx:id="deadlineColumn" prefWidth="150.0" text="Deadline (24h)" />
-                  <TableColumn fx:id="descriptionColumn" prefWidth="200.0" text="Description" />
+                  <TableColumn fx:id="descriptionColumn" prefWidth="200.0" text="[OrderNum]-Description" resizable="true" />
                </columns>
             </TableView>
             

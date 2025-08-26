@@ -19,6 +19,7 @@ public class ComplaintResponse implements Serializable {
         this.etaIso = etaIso;
     }
 
+
     // Getters and Setters
     public boolean isSuccess() {
         return success;
@@ -43,4 +44,5 @@ public class ComplaintResponse implements Serializable {
     public void setEtaIso(String etaIso) {
         this.etaIso = etaIso;
     }
+
 }
