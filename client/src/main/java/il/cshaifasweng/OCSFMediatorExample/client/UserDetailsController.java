@@ -15,6 +15,8 @@ import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.UserSubscriptionSetupRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.AccountSetupResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintResponse;
 
 import java.io.IOException;
 import java.net.URL;
@@ -64,6 +66,9 @@ public class UserDetailsController implements Initializable {
     private Button viewOrdersButton;
 
     @FXML
+    private Button submitComplaintButton;
+
+    @FXML
     private VBox subscriptionPanel;
 
     @FXML
@@ -71,6 +76,9 @@ public class UserDetailsController implements Initializable {
 
     @FXML
     private Button adminPanelButton;
+
+    @FXML
+    private Button employeeComplaintsButton;
 
     @FXML
     private Label userRoleLabel;
@@ -169,6 +177,20 @@ public class UserDetailsController implements Initializable {
         if (adminPanelButton != null) {
             adminPanelButton.setVisible(user.isAdmin());
             adminPanelButton.setManaged(user.isAdmin());
+        }
+        
+        // Show/hide employee complaints button - only for employees and admins
+        if (employeeComplaintsButton != null) {
+            boolean isEmployee = user.isEmployee() || user.isAdmin();
+            employeeComplaintsButton.setVisible(isEmployee);
+            employeeComplaintsButton.setManaged(isEmployee);
+        }
+        
+        // Show/hide complaint button - only for customers
+        if (submitComplaintButton != null) {
+            boolean isCustomer = user.getUserType().toString().equals("CUSTOMER");
+            submitComplaintButton.setVisible(isCustomer);
+            submitComplaintButton.setManaged(isCustomer);
         }
         
         // Configure subscription panel visibility based on user type
@@ -410,6 +432,127 @@ public class UserDetailsController implements Initializable {
             showMessage("Error loading admin panel", false);
             e.printStackTrace();
         }
+    }
+
+    @FXML
+    void handleEmployeeComplaints(ActionEvent event) {
+        User currentUser = LoginController.getCurrentUser();
+        if (currentUser == null || (!currentUser.isEmployee() && !currentUser.isAdmin())) {
+            showMessage("Access denied: Employee privileges required", false);
+            return;
+        }
+        
+        try {
+            App.setRoot("employeeComplaints");
+        } catch (IOException e) {
+            showMessage("Error loading employee complaints panel", false);
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    void handleSubmitComplaint(ActionEvent event) {
+        User currentUser = LoginController.getCurrentUser();
+        if (currentUser == null) {
+            showMessage("Please log in to submit a complaint", false);
+            return;
+        }
+
+        showComplaintDialog(currentUser);
+    }
+
+    private void showComplaintDialog(User currentUser) {
+        Dialog<ComplaintRequest> dialog = new Dialog<>();
+        dialog.setTitle("Submit Complaint");
+        dialog.setHeaderText("Please describe your complaint:");
+
+        // Create dialog content
+        VBox content = new VBox(10);
+        content.setPrefWidth(400);
+
+        Label emailLabel = new Label("Email:");
+        TextField emailField = new TextField();
+        emailField.setText(currentUser.getEmail());
+        emailField.setPromptText("Enter your email");
+
+        Label descriptionLabel = new Label("Description:");
+        TextArea descriptionArea = new TextArea();
+        descriptionArea.setPromptText("Please enter your complaint description...");
+        descriptionArea.setPrefRowCount(5);
+        descriptionArea.setWrapText(true);
+
+        content.getChildren().addAll(emailLabel, emailField, descriptionLabel, descriptionArea);
+        dialog.getDialogPane().setContent(content);
+
+        // Add buttons
+        ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(submitButtonType, ButtonType.CANCEL);
+
+        Button submitButton = (Button) dialog.getDialogPane().lookupButton(submitButtonType);
+        submitButton.setDefaultButton(true);
+
+        // Handle Enter key in description area
+        descriptionArea.setOnKeyPressed(keyEvent -> {
+            if (keyEvent.getCode() == javafx.scene.input.KeyCode.ENTER && keyEvent.isControlDown()) {
+                submitButton.fire();
+            }
+        });
+
+        // Convert result when submit is clicked
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == submitButtonType) {
+                String description = descriptionArea.getText().trim();
+                if (description.isEmpty()) {
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Validation Error");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Please enter a complaint description.");
+                        alert.showAndWait();
+                    });
+                    return null;
+                }
+                return new ComplaintRequest(emailField.getText().trim(), description);
+            }
+            return null;
+        });
+
+        // Show dialog and handle result
+        dialog.showAndWait().ifPresent(complaintRequest -> {
+            submitComplaintToServer(complaintRequest);
+        });
+    }
+
+    private void submitComplaintToServer(ComplaintRequest request) {
+        try {
+            App.getClient().sendToServer(request);
+            // Don't show immediate message - wait for server response
+        } catch (IOException e) {
+            showMessage("Failed to submit complaint: " + e.getMessage(), false);
+            e.printStackTrace();
+        }
+    }
+
+    @Subscribe
+    public void onComplaintResponse(ComplaintResponse response) {
+        // Print to console for debugging
+        System.out.println("Complaint submitted? " + response.isSuccess() + " | message: " + response.getMessage());
+        
+        Platform.runLater(() -> {
+            if (response.isSuccess()) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Complaint Submitted");
+                alert.setHeaderText(null);
+                alert.setContentText(response.getMessage());
+                alert.showAndWait();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Complaint Submission Failed");
+                alert.setHeaderText(null);
+                alert.setContentText(response.getMessage());
+                alert.showAndWait();
+            }
+        });
     }
 
 

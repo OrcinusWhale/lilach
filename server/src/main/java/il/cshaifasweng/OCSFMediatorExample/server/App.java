@@ -21,6 +21,7 @@ import il.cshaifasweng.OCSFMediatorExample.entities.Order;
 import il.cshaifasweng.OCSFMediatorExample.entities.OrderItem;
 import il.cshaifasweng.OCSFMediatorExample.entities.Cart;
 import il.cshaifasweng.OCSFMediatorExample.entities.CartItem;
+import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
 
 public class App {
 
@@ -38,6 +39,7 @@ public class App {
     configuration.addAnnotatedClass(OrderItem.class);
     configuration.addAnnotatedClass(Cart.class);
     configuration.addAnnotatedClass(CartItem.class);
+    configuration.addAnnotatedClass(Complaint.class);
     ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
         .applySettings(configuration.getProperties())
         .build();
@@ -96,6 +98,7 @@ public class App {
       // Initialize sample authentication data
       System.out.println("Initializing sample authentication data...");
       DataInitializer.initializeSampleData();
+      
       
     } catch (Exception exception) {
       if (session != null) {

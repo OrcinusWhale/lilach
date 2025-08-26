@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fx:id="rootScroll" fitToWidth="true" prefHeight="720.0" prefWidth="960.0" vbarPolicy="ALWAYS" stylesheets="@catalogue.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CatalogueController">
+<ScrollPane fx:id="rootScroll" fitToWidth="true" prefHeight="720.0" prefWidth="960.0" vbarPolicy="ALWAYS" stylesheets="@catalogue.css" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CatalogueController">
   <content>
     <VBox fx:id="rootContainer" spacing="16" styleClass="catalogue-root">
       <children>
