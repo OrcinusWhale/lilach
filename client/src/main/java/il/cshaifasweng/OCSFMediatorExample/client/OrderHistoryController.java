@@ -165,8 +165,11 @@ public class OrderHistoryController implements Initializable {
         }
         
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        System.out.println("Displaying " + orders.size() + " orders");
         
         for (Order order : orders) {
+            System.out.println("Displaying order: " + order.getOrderId());
             String orderId = "Order #" + order.getOrderId();
             String orderDate = order.getOrderDate().format(dateFormatter);
             String deliveryDate = order.getRequestedDeliveryDate().format(dateFormatter);
