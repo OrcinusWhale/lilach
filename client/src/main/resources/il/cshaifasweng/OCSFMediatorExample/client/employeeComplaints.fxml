@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.EmployeeComplaintsController">
+   <top>
+      <VBox BorderPane.alignment="CENTER">
+         <children>
+            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Customer Complaints Management" textFill="#2c3e50">
+               <font>
+                  <Font name="System Bold" size="20.0" />
+               </font>
+               <VBox.margin>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </VBox.margin>
+            </Label>
+            <Separator />
+         </children>
+      </VBox>
+   </top>
+   <center>
+      <VBox BorderPane.alignment="CENTER" spacing="10.0">
+         <children>
+            <TableView fx:id="complaintsTable" prefHeight="400.0">
+               <columns>
+                  <TableColumn fx:id="idColumn" prefWidth="50.0" text="ID" />
+                  <TableColumn fx:id="customerEmailColumn" prefWidth="150.0" text="Customer Email" />
+                  <TableColumn fx:id="statusColumn" prefWidth="100.0" text="Status" />
+                  <TableColumn fx:id="assignedEmployeeColumn" prefWidth="120.0" text="Assigned Employee" />
+                  <TableColumn fx:id="createdAtColumn" prefWidth="150.0" text="Created At" />
+                  <TableColumn fx:id="deadlineColumn" prefWidth="150.0" text="Deadline (24h)" />
+                  <TableColumn fx:id="descriptionColumn" prefWidth="200.0" text="Description" />
+               </columns>
+            </TableView>
+            
+            <HBox spacing="10.0" alignment="CENTER">
+               <children>
+                  <Button fx:id="refreshButton" onAction="#handleRefresh" text="Refresh" />
+                  <Button fx:id="backButton" onAction="#handleBack" text="Back to Main" />
+               </children>
+            </HBox>
+            
+            <!-- Compensation Processing Section -->
+            <VBox spacing="10.0" style="-fx-background-color: #f8f9fa; -fx-padding: 15; -fx-background-radius: 5;">
+               <children>
+                  <Label text="Process Customer Complaint" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+                  <HBox spacing="10.0" alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="Compensation Amount:" />
+                        <TextField fx:id="compensationAmountField" prefWidth="100.0" promptText="0.00" />
+                        <Label text="Currency:" />
+                        <TextField fx:id="compensationCurrencyField" prefWidth="60.0" text="USD" />
+                        <Label text="Note:" />
+                        <TextField fx:id="compensationNoteField" prefWidth="200.0" promptText="Resolution note" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+            
+            <HBox spacing="10.0" alignment="CENTER">
+               <children>
+                  <Button fx:id="approveCompensationButton" onAction="#handleApproveCompensation" text="Approve Compensation" />
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </VBox>
+   </center>
+   <bottom>
+      <VBox BorderPane.alignment="CENTER">
+         <children>
+            <Separator />
+            <Label fx:id="statusLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="Ready">
+               <VBox.margin>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </VBox.margin>
+            </Label>
+         </children>
+      </VBox>
+   </bottom>
+</BorderPane>

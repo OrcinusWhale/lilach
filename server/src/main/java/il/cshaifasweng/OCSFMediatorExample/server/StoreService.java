@@ -82,8 +82,6 @@ public class StoreService {
             Long storeCount = countQuery.uniqueResult();
             
             if (storeCount == 0) {
-                System.out.println("No stores found. Initializing default stores...");
-                
                 session.beginTransaction();
                 
                 // Create default stores
@@ -99,9 +97,6 @@ public class StoreService {
                 session.save(haifaStore);
                 
                 session.getTransaction().commit();
-                System.out.println("Default stores initialized successfully.");
-            } else {
-                System.out.println("Found " + storeCount + " existing stores.");
             }
         } catch (Exception e) {
             if (session.getTransaction() != null) {

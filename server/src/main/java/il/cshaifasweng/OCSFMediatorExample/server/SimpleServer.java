@@ -29,6 +29,9 @@ import il.cshaifasweng.OCSFMediatorExample.entities.OrderDetailsRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.OrderDetailsResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.SessionRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.SessionResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
+import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintResponse;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -52,6 +55,7 @@ public class SimpleServer extends AbstractServer {
     private SubscriptionService subscriptionService;
     private StoreService storeService;
     private OrderService orderService;
+    private ComplaintService complaintService;
 
     public SimpleServer(int port) {
         super(port);
@@ -59,10 +63,12 @@ public class SimpleServer extends AbstractServer {
         this.subscriptionService = new SubscriptionService(App.session.getSessionFactory());
         // Initialize StoreService
         this.storeService = new StoreService(App.session);
-        // Initialize default stores
+        // Initialize default stores (silently)
         this.storeService.initializeDefaultStores();
         // Initialize OrderService
         this.orderService = new OrderService(App.session.getSessionFactory());
+        // Initialize ComplaintService
+        this.complaintService = new ComplaintService(App.session.getSessionFactory());
     }
 
     @Override
@@ -166,6 +172,19 @@ public class SimpleServer extends AbstractServer {
                     client.sendToClient(response);
                 } catch (IOException e) {
                     System.err.println("Failed to send cart response: " + e.getMessage());
+                }
+            } else if (msgString.equals("getAllComplaints")) {
+                // Handle get all complaints request
+                System.out.println("Server received getAllComplaints request");
+                try {
+                    List<Complaint> complaints = complaintService.getAllComplaints();
+                    client.sendToClient(complaints);
+                    System.out.println("Sent " + complaints.size() + " complaints to client");
+                } catch (IOException e) {
+                    System.err.println("Failed to send complaints list: " + e.getMessage());
+                } catch (Exception e) {
+                    System.err.println("Error retrieving complaints: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         } else if (msg instanceof Item) {
@@ -336,6 +355,17 @@ public class SimpleServer extends AbstractServer {
                     System.err.println("Failed to send error response: " + ioE.getMessage());
                 }
             }
+        } else if (msg instanceof ComplaintRequest) {
+            // Handle complaint submission
+            ComplaintRequest complaintRequest = (ComplaintRequest) msg;
+            System.out.println("Server received complaint from: " + complaintRequest.getCustomerEmail());
+            
+            try {
+                ComplaintResponse response = complaintService.submit(complaintRequest);
+                client.sendToClient(response);
+            } catch (IOException e) {
+                System.err.println("Failed to send complaint response: " + e.getMessage());
+            }
         } else if (msg instanceof AddToCartRequest) {
             // Handle add to cart request
             AddToCartRequest cartRequest = (AddToCartRequest) msg;
@@ -392,6 +422,20 @@ public class SimpleServer extends AbstractServer {
                 client.sendToClient(response);
             } catch (IOException e) {
                 System.err.println("Failed to send order details response: " + e.getMessage());
+            }
+        } else if (msg instanceof ComplaintRequest) {
+            // Handle complaint submission request
+            ComplaintRequest complaintRequest = (ComplaintRequest) msg;
+            System.out.println("=== COMPLAINT REQUEST RECEIVED ===");
+            System.out.println("Email: " + complaintRequest.getCustomerEmail());
+            System.out.println("Description: " + (complaintRequest.getDescription() != null ? complaintRequest.getDescription().substring(0, Math.min(50, complaintRequest.getDescription().length())) + "..." : "null"));
+
+            try {
+                ComplaintResponse response = complaintService.submit(complaintRequest);
+                System.out.println("Complaint service returned: success=" + response.isSuccess() + ", message=" + response.getMessage());
+                client.sendToClient(response);
+            } catch (IOException e) {
+                System.err.println("Failed to send complaint response: " + e.getMessage());
             }
         } else if (msg instanceof SessionRequest) {
             // Handle session management requests
