@@ -90,7 +90,7 @@ public class OrderService {
             System.out.println("OrderService: Cart after adding item has " + cart.getCartItems().size() + " items");
             for (CartItem ci : cart.getCartItems()) {
                 System.out.println("OrderService: Cart item - " + ci.getItemName() +
-                                 ", Qty: " + ci.getQuantity() + ", Price: $" + ci.getPrice());
+                        ", Qty: " + ci.getQuantity() + ", Price: $" + ci.getPrice());
             }
 
             return new CartResponse(true, "Item added to cart successfully", cart);
@@ -122,7 +122,7 @@ public class OrderService {
 
             // Force initialization of cart items to avoid lazy loading issues
             cart.getCartItems().size(); // This triggers the lazy loading
-            
+
             // Also ensure item details are loaded for each cart item
             for (CartItem cartItem : cart.getCartItems()) {
                 if (cartItem.getItem() != null) {
@@ -134,13 +134,13 @@ public class OrderService {
 
             System.out.println("OrderService: Retrieved cart has " + cart.getCartItems().size() + " items");
             for (CartItem ci : cart.getCartItems()) {
-                System.out.println("OrderService: Retrieved cart item - " + ci.getItemName() + 
-                                 ", Qty: " + ci.getQuantity() + ", Price: $" + ci.getPrice());
+                System.out.println("OrderService: Retrieved cart item - " + ci.getItemName() +
+                        ", Qty: " + ci.getQuantity() + ", Price: $" + ci.getPrice());
             }
 
             CartResponse response = new CartResponse(true, "Cart retrieved successfully", cart);
-            System.out.println("OrderService: Returning CartResponse with " + 
-                             (response.getCartItems() != null ? response.getCartItems().size() : 0) + " items");
+            System.out.println("OrderService: Returning CartResponse with " +
+                    (response.getCartItems() != null ? response.getCartItems().size() : 0) + " items");
             return response;
 
         } catch (Exception e) {
@@ -226,13 +226,13 @@ public class OrderService {
             Cart cart = getActiveCartForUser(session, user);
             if (cart != null) {
                 System.out.println("OrderService: Clearing cart with " + cart.getCartItems().size() + " items");
-                
+
                 // Delete all cart items from database first
                 for (CartItem cartItem : cart.getCartItems()) {
                     System.out.println("OrderService: Deleting cart item - " + cartItem.getItemName());
                     session.delete(cartItem);
                 }
-                
+
                 // Clear the collection
                 cart.clearCart();
                 session.saveOrUpdate(cart);
@@ -298,21 +298,21 @@ public class OrderService {
             if (orderType == Order.OrderType.DELIVERY) {
                 // Set delivery fee
                 order.setDeliveryFee(15.0); // Fixed delivery fee
-                
+
                 // Set delivery address
                 if (request.getDeliveryAddress() != null && !request.getDeliveryAddress().trim().isEmpty()) {
                     order.setDeliveryAddress(request.getDeliveryAddress());
                 } else {
                     order.setDeliveryAddress(user.getAddress()); // Use user's default address
                 }
-                
+
                 // Set recipient details
                 if (request.getRecipientName() != null && !request.getRecipientName().trim().isEmpty()) {
                     order.setRecipientName(request.getRecipientName());
                 } else {
                     order.setRecipientName(user.getFullName()); // Use user's name as default
                 }
-                
+
                 if (request.getRecipientPhone() != null && !request.getRecipientPhone().trim().isEmpty()) {
                     order.setRecipientPhone(request.getRecipientPhone());
                 } else {
@@ -372,7 +372,7 @@ public class OrderService {
 
         try {
             Query<Order> query = session.createQuery(
-                "FROM Order o WHERE o.user.userId = :userId ORDER BY o.orderDate DESC", Order.class);
+                    "FROM Order o WHERE o.user.userId = :userId ORDER BY o.orderDate DESC", Order.class);
             query.setParameter("userId", userId);
             return query.list();
 
@@ -428,14 +428,14 @@ public class OrderService {
     private Cart getActiveCartForUser(Session session, User user) {
         try {
             Query<Cart> query = session.createQuery(
-                "FROM Cart c LEFT JOIN FETCH c.cartItems ci LEFT JOIN FETCH ci.item WHERE c.user.userId = :userId AND c.isActive = true", Cart.class);
+                    "FROM Cart c LEFT JOIN FETCH c.cartItems ci LEFT JOIN FETCH ci.item WHERE c.user.userId = :userId AND c.isActive = true", Cart.class);
             query.setParameter("userId", user.getUserId());
             List<Cart> carts = query.list();
-            
+
             Cart cart = carts.isEmpty() ? null : carts.get(0);
             if (cart != null) {
-                System.out.println("OrderService: Found active cart for user " + user.getUserId() + 
-                                 " with " + cart.getCartItems().size() + " items");
+                System.out.println("OrderService: Found active cart for user " + user.getUserId() +
+                        " with " + cart.getCartItems().size() + " items");
             } else {
                 System.out.println("OrderService: No active cart found for user " + user.getUserId());
             }
@@ -484,7 +484,7 @@ public class OrderService {
 
             int refundPercentage;
             String refundPolicy;
-            
+
             if (hoursUntilDelivery >= 3) {
                 refundPercentage = 100;
                 refundPolicy = "Full refund (≥ 3 hours before delivery)";
@@ -503,13 +503,13 @@ public class OrderService {
             order.setOrderStatus(Order.OrderStatus.CANCELLED);
             session.saveOrUpdate(order);
             session.flush(); // Force immediate write to database
-            
+
             System.out.println("OrderService: Order status after update: " + order.getOrderStatus());
             System.out.println("OrderService: Committing transaction...");
             transaction.commit();
             System.out.println("OrderService: Transaction committed successfully");
 
-            String message = String.format("Order #%d has been cancelled successfully. %s - Refund amount: $%.2f", 
+            String message = String.format("Order #%d has been cancelled successfully. %s - Refund amount: $%.2f",
                     order.getOrderId(), refundPolicy, refundAmount);
 
             System.out.println("OrderService: " + message);
@@ -529,19 +529,23 @@ public class OrderService {
     // Order History Methods
     public OrderHistoryResponse getUserOrderHistory(int userId) {
         Session session = sessionFactory.openSession();
-        
+
         try {
             // Query orders for the user, ordered by date descending (newest first)
+            // DISTINCT prevents duplicate Order instances caused by fetch joins
             Query<Order> query = session.createQuery(
-                "FROM Order o LEFT JOIN FETCH o.orderItems oi LEFT JOIN FETCH oi.item LEFT JOIN FETCH o.store " +
-                "WHERE o.user.userId = :userId ORDER BY o.orderDate DESC", Order.class);
+                    "SELECT DISTINCT o FROM Order o " +
+                            "LEFT JOIN FETCH o.orderItems oi " +
+                            "LEFT JOIN FETCH oi.item " +
+                            "LEFT JOIN FETCH o.store " +
+                            "WHERE o.user.userId = :userId ORDER BY o.orderDate DESC", Order.class);
             query.setParameter("userId", userId);
             List<Order> orders = query.list();
-            
+
             System.out.println("OrderService: Found " + orders.size() + " orders for user " + userId);
-            
+
             return new OrderHistoryResponse(orders);
-            
+
         } catch (Exception e) {
             System.err.println("Error retrieving order history for user " + userId + ": " + e.getMessage());
             e.printStackTrace();
@@ -554,31 +558,31 @@ public class OrderService {
     // Order Details Method
     public OrderDetailsResponse getOrderDetails(OrderDetailsRequest request) {
         Session session = sessionFactory.openSession();
-        
+
         try {
             // Get order with all related entities loaded
             Query<Order> query = session.createQuery(
-                "SELECT o FROM Order o " +
-                "LEFT JOIN FETCH o.user " +
-                "LEFT JOIN FETCH o.store " +
-                "LEFT JOIN FETCH o.orderItems oi " +
-                "LEFT JOIN FETCH oi.item " +
-                "WHERE o.orderId = :orderId", Order.class);
-            
+                    "SELECT o FROM Order o " +
+                            "LEFT JOIN FETCH o.user " +
+                            "LEFT JOIN FETCH o.store " +
+                            "LEFT JOIN FETCH o.orderItems oi " +
+                            "LEFT JOIN FETCH oi.item " +
+                            "WHERE o.orderId = :orderId", Order.class);
+
             query.setParameter("orderId", request.getOrderId());
             Order order = query.uniqueResult();
-            
+
             if (order == null) {
                 return new OrderDetailsResponse(false, "Order not found");
             }
-            
+
             // Verify user has access to this order
             if (order.getUser().getUserId() != request.getUserId()) {
                 return new OrderDetailsResponse(false, "Access denied: Order does not belong to this user");
             }
-            
+
             return new OrderDetailsResponse(true, "Order details retrieved successfully", order);
-            
+
         } catch (Exception e) {
             System.err.println("Error retrieving order details: " + e.getMessage());
             e.printStackTrace();
