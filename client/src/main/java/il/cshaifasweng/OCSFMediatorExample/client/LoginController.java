@@ -96,6 +96,7 @@ public class LoginController implements Initializable {
                 
                 hideError();
                 try {
+                    EventBus.getDefault().unregister(this);
                     App.setRoot("userDetails");
                 } catch (IOException e) {
                     showError("Error loading user details");
