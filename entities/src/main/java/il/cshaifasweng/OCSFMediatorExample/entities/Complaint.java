@@ -44,6 +44,9 @@ public class Complaint implements Serializable {
     @Column(name = "deadline")
     private Instant deadline;
 
+    @Column(name = "order_number")
+    private String orderNumber;
+
     // Default constructor
     public Complaint() {
         this.createdAt = Instant.now();
@@ -148,6 +151,14 @@ public class Complaint implements Serializable {
         this.deadline = deadline;
     }
 
+    public String getOrderNumber() {
+        return orderNumber;
+    }
+
+    public void setOrderNumber(String orderNumber) {
+        this.orderNumber = orderNumber;
+    }
+
     @Override
     public String toString() {
         return "Complaint{" +
@@ -161,6 +172,7 @@ public class Complaint implements Serializable {
                 ", compensationCurrency='" + compensationCurrency + '\'' +
                 ", decisionAt=" + decisionAt +
                 ", decisionNote='" + decisionNote + '\'' +
+                ", orderNumber='" + orderNumber + '\'' +
                 '}';
     }
 }

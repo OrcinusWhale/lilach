@@ -179,16 +179,16 @@ public class UserDetailsController implements Initializable {
             adminPanelButton.setManaged(user.isAdmin());
         }
         
-        // Show/hide employee complaints button - only for employees and admins
+        // Show/hide employee complaints button - only for employees (not admins)
         if (employeeComplaintsButton != null) {
-            boolean isEmployee = user.isEmployee() || user.isAdmin();
+            boolean isEmployee = user.isEmployee() && !user.isAdmin();
             employeeComplaintsButton.setVisible(isEmployee);
             employeeComplaintsButton.setManaged(isEmployee);
         }
         
-        // Show/hide complaint button - only for customers
+        // Show/hide complaint button - only for customers (hide for admins)
         if (submitComplaintButton != null) {
-            boolean isCustomer = user.getUserType().toString().equals("CUSTOMER");
+            boolean isCustomer = user.getUserType().toString().equals("CUSTOMER") && !user.isAdmin();
             submitComplaintButton.setVisible(isCustomer);
             submitComplaintButton.setManaged(isCustomer);
         }
@@ -435,10 +435,11 @@ public class UserDetailsController implements Initializable {
         }
     }
 
+
     @FXML
     void handleEmployeeComplaints(ActionEvent event) {
         User currentUser = LoginController.getCurrentUser();
-        if (currentUser == null || (!currentUser.isEmployee() && !currentUser.isAdmin())) {
+        if (currentUser == null || !currentUser.isEmployee() || currentUser.isAdmin()) {
             showMessage("Access denied: Employee privileges required", false);
             return;
         }
@@ -476,13 +477,17 @@ public class UserDetailsController implements Initializable {
         emailField.setText(currentUser.getEmail());
         emailField.setPromptText("Enter your email");
 
+        Label orderNumberLabel = new Label("Order Number (Optional):");
+        TextField orderNumberField = new TextField();
+        orderNumberField.setPromptText("Enter order number if complaint is related to a specific order");
+
         Label descriptionLabel = new Label("Description:");
         TextArea descriptionArea = new TextArea();
         descriptionArea.setPromptText("Please enter your complaint description...");
         descriptionArea.setPrefRowCount(5);
         descriptionArea.setWrapText(true);
 
-        content.getChildren().addAll(emailLabel, emailField, descriptionLabel, descriptionArea);
+        content.getChildren().addAll(emailLabel, emailField, orderNumberLabel, orderNumberField, descriptionLabel, descriptionArea);
         dialog.getDialogPane().setContent(content);
 
         // Add buttons
@@ -513,7 +518,26 @@ public class UserDetailsController implements Initializable {
                     });
                     return null;
                 }
-                return new ComplaintRequest(emailField.getText().trim(), description);
+                String orderNumber = orderNumberField.getText().trim();
+                String finalDescription = description;
+                
+                // Add order number to beginning of description if provided (with brackets)
+                if (!orderNumber.isEmpty()) {
+                    finalDescription = "[" + orderNumber + "]-" + description;
+                }
+                
+                ComplaintRequest request = new ComplaintRequest(emailField.getText().trim(), finalDescription);
+                if (!orderNumber.isEmpty()) {
+                    // Use reflection to safely set order number if method exists
+                    try {
+                        java.lang.reflect.Method setOrderNumberMethod = request.getClass().getMethod("setOrderNumber", String.class);
+                        setOrderNumberMethod.invoke(request, orderNumber);
+                    } catch (Exception e) {
+                        // Method doesn't exist in compiled version, ignore silently
+                        System.out.println("Order number feature not available in current build");
+                    }
+                }
+                return request;
             }
             return null;
         });
@@ -540,19 +564,23 @@ public class UserDetailsController implements Initializable {
         System.out.println("Complaint submitted? " + response.isSuccess() + " | message: " + response.getMessage());
         
         Platform.runLater(() -> {
+            Alert alert;
             if (response.isSuccess()) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Complaint Submitted");
                 alert.setHeaderText(null);
                 alert.setContentText(response.getMessage());
-                alert.showAndWait();
             } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Complaint Submission Failed");
                 alert.setHeaderText(null);
                 alert.setContentText(response.getMessage());
-                alert.showAndWait();
             }
+            
+            // Set alert to be modal and on top
+            alert.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            alert.setResizable(false);
+            alert.show();
         });
     }
 

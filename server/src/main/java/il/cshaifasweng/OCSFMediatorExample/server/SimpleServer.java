@@ -32,6 +32,8 @@ import il.cshaifasweng.OCSFMediatorExample.entities.SessionResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
 import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintResponse;
+import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintDecisionRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintActionResponse;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -436,6 +438,17 @@ public class SimpleServer extends AbstractServer {
                 client.sendToClient(response);
             } catch (IOException e) {
                 System.err.println("Failed to send complaint response: " + e.getMessage());
+            }
+        } else if (msg instanceof ComplaintDecisionRequest) {
+            // Handle complaint decision request
+            ComplaintDecisionRequest decisionRequest = (ComplaintDecisionRequest) msg;
+            System.out.println("Server received complaint decision request for complaint ID: " + decisionRequest.getComplaintId());
+
+            try {
+                ComplaintActionResponse response = complaintService.decide(decisionRequest);
+                client.sendToClient(response);
+            } catch (IOException e) {
+                System.err.println("Failed to send complaint decision response: " + e.getMessage());
             }
         } else if (msg instanceof SessionRequest) {
             // Handle session management requests
