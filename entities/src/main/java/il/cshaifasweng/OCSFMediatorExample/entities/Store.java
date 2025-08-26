@@ -34,7 +34,7 @@ public class Store implements Serializable {
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<User> users = new ArrayList<>();
     
-    @ManyToMany(mappedBy = "stores")
+    @ManyToMany(mappedBy = "stores", fetch = FetchType.EAGER)
     private Set<Item> items = new HashSet<>();
 
     // Default constructor
