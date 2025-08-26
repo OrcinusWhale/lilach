@@ -234,6 +234,7 @@ public class EmployeeComplaintsController implements Initializable {
     @FXML
     void handleBack(ActionEvent event) {
         try {
+            EventBus.getDefault().unregister(this);
             App.setRoot("userDetails");
         } catch (IOException e) {
             showAlert("Error", "Failed to return to main screen: " + e.getMessage(), Alert.AlertType.ERROR);

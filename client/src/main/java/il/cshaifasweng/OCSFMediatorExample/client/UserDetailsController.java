@@ -378,6 +378,7 @@ public class UserDetailsController implements Initializable {
         System.out.println("Logout requested by user");
         
         // Use SessionService to properly terminate server session
+        EventBus.getDefault().unregister(this);
         SessionService.getInstance().logout();
         
         // Note: SessionService will handle navigation to login screen after server response
