@@ -111,7 +111,12 @@ public class RegisterController implements Initializable {
     
     private void loadStoresFromServer() {
         try {
-            SimpleClient.getClient().sendToServer(new StoreListRequest());
+            // Ensure connection is established before sending request
+            SimpleClient client = SimpleClient.getClient();
+            if (!client.isConnected()) {
+                App.connect();
+            }
+            client.sendToServer(new StoreListRequest());
         } catch (IOException e) {
             Platform.runLater(() -> {
                 errorLabel.setText("Error loading stores: " + e.getMessage());
@@ -127,6 +132,12 @@ public class RegisterController implements Initializable {
         }
 
         try {
+            // Ensure connection is established before sending request
+            SimpleClient client = SimpleClient.getClient();
+            if (!client.isConnected()) {
+                App.connect();
+            }
+            
             // Determine user type
             User.UserType userType = brandUserRadio.isSelected() ? User.UserType.BRAND_USER : User.UserType.STORE_SPECIFIC;
             
@@ -159,7 +170,7 @@ public class RegisterController implements Initializable {
                 setupRequest.setCustomerName(customerNameField.getText().trim());
             }
 
-            SimpleClient.getClient().sendToServer(setupRequest);
+            client.sendToServer(setupRequest);
             registerButton.setDisable(true);
             registerButton.setText("Registering...");
         } catch (IOException e) {
@@ -258,12 +269,19 @@ public class RegisterController implements Initializable {
 
             if (response.isSuccess()) {
                 hideError();
-                try {
-                    App.setRoot("login");
-                } catch (IOException e) {
-                    showError("Error returning to login");
-                    e.printStackTrace();
-                }
+                showSuccess("Registration successful! You can now log in with your credentials.");
+                
+                // Wait 2 seconds before navigating to login
+                javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
+                pause.setOnFinished(e -> {
+                    try {
+                        App.setRoot("login");
+                    } catch (IOException ex) {
+                        showError("Error returning to login");
+                        ex.printStackTrace();
+                    }
+                });
+                pause.play();
             } else {
                 showError(response.getMessage());
             }
@@ -272,6 +290,13 @@ public class RegisterController implements Initializable {
 
     private void showError(String message) {
         errorLabel.setText(message);
+        errorLabel.setStyle("-fx-text-fill: red;");
+        errorLabel.setVisible(true);
+    }
+
+    private void showSuccess(String message) {
+        errorLabel.setText(message);
+        errorLabel.setStyle("-fx-text-fill: green;");
         errorLabel.setVisible(true);
     }
 
