@@ -444,7 +444,7 @@ public class ItemPageController {
   void toggleDelete(ActionEvent event) {
     // Prevent customers from accessing delete flow
     User currentUser = UserSession.getCurrentUser();
-    if (currentUser != null && currentUser.isCustomer()) {
+    if (currentUser != null && (currentUser.isCustomer() || currentUser.isStoreSpecific() || currentUser.isBrandUser())) {
       return; // ignore
     }
     delete = !delete;
@@ -572,7 +572,7 @@ public class ItemPageController {
 
   private void applyPermissions() {
     User currentUser = UserSession.getCurrentUser();
-    boolean isCustomer = currentUser != null && currentUser.isCustomer();
+    boolean isCustomer = currentUser != null && (currentUser.isCustomer() || currentUser.isStoreSpecific() || currentUser.isBrandUser());
     if (editBtn != null && isCustomer) {
       editBtn.setVisible(false);
       editBtn.setDisable(true);
