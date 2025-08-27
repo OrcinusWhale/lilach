@@ -41,7 +41,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Item;
 import il.cshaifasweng.OCSFMediatorExample.entities.Store;
@@ -67,10 +69,63 @@ public class SimpleServer extends AbstractServer {
         this.storeService = new StoreService(App.session);
         // Initialize default stores (silently)
         this.storeService.initializeDefaultStores();
+        generateDb();
         // Initialize OrderService
         this.orderService = new OrderService(App.session.getSessionFactory());
         // Initialize ComplaintService
         this.complaintService = new ComplaintService(App.session.getSessionFactory());
+    }
+
+    private static void generateDb() {
+        CriteriaBuilder builder = App.session.getCriteriaBuilder();
+        CriteriaQuery<Item> query = builder.createQuery(Item.class);
+        query.from(Item.class);
+        List<Item> existingItems = App.session.createQuery(query).getResultList();
+        if (!existingItems.isEmpty()) {
+            System.out.println("Items already exist in the database. Skipping sample data generation.");
+            return;
+        }
+        System.out.println("Generating sample flower data...");
+        try {
+            App.session.beginTransaction();
+            // Create images directory if it doesn't exist
+            File imagesDir = new File("images");
+            if (!imagesDir.exists()) {
+                imagesDir.mkdirs();
+                System.out.println("Created images directory: " + imagesDir.getAbsolutePath());
+            }
+
+            // Insert the special Custom order item first so it receives the first generated ID (1)
+            // No image is required for this logical placeholder item
+            Item customOrder = new Item("Custom order", "Custom order", 1);
+            App.session.save(customOrder);
+
+            List<String> itemNames = Arrays.asList("Orange Blossom", "White celebration", "Spring Celebration",
+                    "Sunflower Bouquet", "Lovely Bouquet");
+            for (String name : itemNames) {
+                // Use relative path from server working directory
+                File imageFile = new File(imagesDir, name + ".jpg");
+                System.out.println("Creating item: " + name + " with image path: " + imageFile.getAbsolutePath());
+                Item item = new Item(name, "Bouquet", 1000, imageFile);
+                int storeId = new Random().nextInt(3) + 1; // Assuming store IDs are 1, 2, or 3
+                Store store = App.session.get(Store.class, storeId);
+                if (store != null) {
+                    item.getStores().add(store);
+                } else {
+                    System.err.println("Store with ID " + storeId + " not found. Skipping store association.");
+                }
+                App.session.save(item);
+            }
+            App.session.flush();
+            App.session.getTransaction().commit();
+        } catch (Exception exception) {
+            if (App.session != null) {
+                App.session.getTransaction().rollback();
+            }
+            System.err.println("Whoops, rollback");
+            exception.printStackTrace();
+        }
+        System.out.println("Sample flower data generated successfully!");
     }
 
     @Override
@@ -361,7 +416,7 @@ public class SimpleServer extends AbstractServer {
             // Handle complaint submission
             ComplaintRequest complaintRequest = (ComplaintRequest) msg;
             System.out.println("Server received complaint from: " + complaintRequest.getCustomerEmail());
-            
+
             try {
                 ComplaintResponse response = complaintService.submit(complaintRequest);
                 client.sendToClient(response);
