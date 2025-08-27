@@ -140,30 +140,39 @@ public class UserDetailsController implements Initializable {
     }
 
     private void configureRoleBasedAccess(User user) {
+        // Admin panel button
         if (adminPanelButton != null) {
-            adminPanelButton.setVisible(user.isAdmin());
-            adminPanelButton.setManaged(user.isAdmin());
+            boolean isAdmin = user != null && user.isAdmin();
+            adminPanelButton.setVisible(isAdmin);
+            adminPanelButton.setManaged(isAdmin);
         }
 
+        // Employee complaints button — only employees (not admins)
         if (employeeComplaintsButton != null) {
-            boolean isEmployee = user.isEmployee() && !user.isAdmin();
-            employeeComplaintsButton.setVisible(isEmployee);
-            employeeComplaintsButton.setManaged(isEmployee);
+            boolean showEmpComplaints = user != null && user.isEmployee() && !user.isAdmin();
+            employeeComplaintsButton.setVisible(showEmpComplaints);
+            employeeComplaintsButton.setManaged(showEmpComplaints);
         }
 
-        // Show/hide complaint button – for customers, store-specific users, and brand users (hide for admins)
+        // Submit complaint — for customers, store-specific users, and brand users (hide for admins)
         if (submitComplaintButton != null) {
             boolean canSubmitComplaint =
-                    (user.getUserType().toString().equals("CUSTOMER") ||
-                            user.getUserType().toString().equals("STORE_SPECIFIC") ||
-                            user.getUserType().toString().equals("BRAND_USER")) &&
-                            !user.isAdmin();
+                    user != null &&
+                            (user.getUserType().toString().equals("CUSTOMER")
+                                    || user.getUserType().toString().equals("STORE_SPECIFIC")
+                                    || user.getUserType().toString().equals("BRAND_USER"))
+                            && !user.isAdmin();
+
             submitComplaintButton.setVisible(canSubmitComplaint);
             submitComplaintButton.setManaged(canSubmitComplaint);
         }
 
+        // Subscription panel & related controls
         configureSubscriptionPanelVisibility(user);
+
+        // (Reports button is handled separately via applyReportPermission(user))
     }
+
 
     private void configureSubscriptionPanelVisibility(User user) {
         if (user.isStoreSpecific()) {
