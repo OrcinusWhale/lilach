@@ -186,11 +186,14 @@ public class UserDetailsController implements Initializable {
             employeeComplaintsButton.setManaged(isEmployee);
         }
         
-        // Show/hide complaint button - only for customers (hide for admins)
+        // Show/hide complaint button - for customers, store-specific users, and brand users (hide for admins)
         if (submitComplaintButton != null) {
-            boolean isCustomer = user.getUserType().toString().equals("CUSTOMER") && !user.isAdmin();
-            submitComplaintButton.setVisible(isCustomer);
-            submitComplaintButton.setManaged(isCustomer);
+            boolean canSubmitComplaint = (user.getUserType().toString().equals("CUSTOMER") || 
+                                        user.getUserType().toString().equals("STORE_SPECIFIC") ||
+                                        user.getUserType().toString().equals("BRAND_USER")) && 
+                                       !user.isAdmin();
+            submitComplaintButton.setVisible(canSubmitComplaint);
+            submitComplaintButton.setManaged(canSubmitComplaint);
         }
         
         // Configure subscription panel visibility based on user type
@@ -564,23 +567,22 @@ public class UserDetailsController implements Initializable {
         System.out.println("Complaint submitted? " + response.isSuccess() + " | message: " + response.getMessage());
         
         Platform.runLater(() -> {
-            Alert alert;
-            if (response.isSuccess()) {
-                alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Complaint Submitted");
-                alert.setHeaderText(null);
-                alert.setContentText(response.getMessage());
-            } else {
-                alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Complaint Submission Failed");
-                alert.setHeaderText(null);
-                alert.setContentText(response.getMessage());
-            }
+            // Use a simple, single-click alert
+            Alert alert = new Alert(response.isSuccess() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+            alert.setTitle(response.isSuccess() ? "Complaint Submitted" : "Complaint Submission Failed");
+            alert.setHeaderText(null);
+            alert.setContentText(response.getMessage());
             
-            // Set alert to be modal and on top
-            alert.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            // Remove all modality and just show normally
             alert.setResizable(false);
             alert.show();
+            
+            // Auto-close after 3 seconds for success messages
+            if (response.isSuccess()) {
+                javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
+                delay.setOnFinished(e -> alert.close());
+                delay.play();
+            }
         });
     }
 
