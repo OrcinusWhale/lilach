@@ -10,9 +10,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
-import il.cshaifasweng.OCSFMediatorExample.entities.Store;
-import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionRequest;
-import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.UserSubscriptionSetupRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.AccountSetupResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintRequest;
@@ -45,7 +42,7 @@ public class UserDetailsController implements Initializable {
     @FXML private Button adminPanelButton;
     @FXML private Button employeeComplaintsButton;
 
-    // NEW: Reports button (make sure userDetails.fxml has fx:id="viewReportsButton"
+    // Reports button – make sure userDetails.fxml has fx:id="viewReportsButton" and onAction="#handleViewReports"
     @FXML private Button viewReportsButton;
 
     @FXML private VBox subscriptionPanel;
@@ -84,7 +81,6 @@ public class UserDetailsController implements Initializable {
         ReportsLauncher.open();
     }
 
-    /** Hide/show the Reports button for the right users. */
     private void applyReportPermission(User u) {
         boolean canSee = canSeeReports(u);
         if (viewReportsButton != null) {
@@ -93,17 +89,12 @@ public class UserDetailsController implements Initializable {
         }
     }
 
-    /**
-     * Permission rule:
-     * - Network / admin users can see reports.
-     * - Branch side: allow employees tied to a specific store (branch staff/manager).
-     * - Everyone else (customers) cannot.
-     */
+    /** Permission rule: Admins (network) and employees tied to a store can see reports. Customers cannot. */
     private boolean canSeeReports(User u) {
         if (u == null) return false;
-        if (u.isAdmin()) return true;                              // network manager/admin
-        if (u.isEmployee() && u.getStore() != null) return true;   // branch staff/manager
-        return false;                                              // customers & others
+        if (u.isAdmin()) return true;                      // network manager/admin
+        if (u.isEmployee() && u.getStore() != null) return true; // branch staff/manager
+        return false;                                      // customers & others
     }
 
     /* ----------------- EXISTING SCREEN LOGIC ----------------- */
@@ -118,41 +109,29 @@ public class UserDetailsController implements Initializable {
             phoneLabel.setText(currentUser.getPhone());
             addressLabel.setText(currentUser.getAddress());
 
-            // Display user role
             userRoleLabel.setText("Role: " + currentUser.getUserType().toString());
-
-            // Display user type and store information
             displayUserTypeAndStore(currentUser);
-
-            // Configure role-based access (admin/employee/customer buttons & panels)
             configureRoleBasedAccess(currentUser);
-
-            // Apply reports permission (hide/show button)
             applyReportPermission(currentUser);
-
             updateSubscriptionStatus(currentUser);
         }
     }
 
     private void displayUserTypeAndStore(User user) {
-        // Display user type
         if (user.isBrandUser()) {
             userTypeLabel.setText("Brand User");
             userTypeLabel.setTextFill(javafx.scene.paint.Color.BLUE);
-            // Hide store information for brand users
             storeInfoLabel.setVisible(false);
             storeNameLabel.setVisible(false);
         } else if (user.isStoreSpecific()) {
             userTypeLabel.setText("Store-Specific User");
             userTypeLabel.setTextFill(javafx.scene.paint.Color.PURPLE);
-            // Show store information for store-specific users
             if (user.getStore() != null) {
                 storeInfoLabel.setVisible(true);
                 storeNameLabel.setVisible(true);
                 storeNameLabel.setText(user.getStore().getStoreName());
             }
         } else {
-            // Legacy user types (CUSTOMER, EMPLOYEE, ADMIN)
             userTypeLabel.setText("Legacy User");
             userTypeLabel.setTextFill(javafx.scene.paint.Color.GRAY);
             storeInfoLabel.setVisible(false);
@@ -161,46 +140,44 @@ public class UserDetailsController implements Initializable {
     }
 
     private void configureRoleBasedAccess(User user) {
-        // Admin panel button
         if (adminPanelButton != null) {
             adminPanelButton.setVisible(user.isAdmin());
             adminPanelButton.setManaged(user.isAdmin());
         }
 
-        // Employee complaints button - only employees (not admins)
         if (employeeComplaintsButton != null) {
             boolean isEmployee = user.isEmployee() && !user.isAdmin();
             employeeComplaintsButton.setVisible(isEmployee);
             employeeComplaintsButton.setManaged(isEmployee);
         }
 
-        // Submit complaint - only customers (hide for admins)
+        // Show/hide complaint button – for customers, store-specific users, and brand users (hide for admins)
         if (submitComplaintButton != null) {
-            boolean isCustomer = user.getUserType().toString().equals("CUSTOMER") && !user.isAdmin();
-            submitComplaintButton.setVisible(isCustomer);
-            submitComplaintButton.setManaged(isCustomer);
+            boolean canSubmitComplaint =
+                    (user.getUserType().toString().equals("CUSTOMER") ||
+                            user.getUserType().toString().equals("STORE_SPECIFIC") ||
+                            user.getUserType().toString().equals("BRAND_USER")) &&
+                            !user.isAdmin();
+            submitComplaintButton.setVisible(canSubmitComplaint);
+            submitComplaintButton.setManaged(canSubmitComplaint);
         }
 
-        // Subscription panel visibility
         configureSubscriptionPanelVisibility(user);
     }
 
     private void configureSubscriptionPanelVisibility(User user) {
         if (user.isStoreSpecific()) {
-            // Store-specific users: Hide entire subscription panel
             if (subscriptionPanel != null) {
                 subscriptionPanel.setVisible(false);
                 subscriptionPanel.setManaged(false);
             }
         } else if (user.isBrandUser()) {
-            // Brand users: Show subscription panel
             if (subscriptionPanel != null) {
                 subscriptionPanel.setVisible(true);
                 subscriptionPanel.setManaged(true);
             }
 
             if (user.isSubscriptionActive()) {
-                // Subscribed brand users
                 if (subscriptionSetupPanel != null) {
                     subscriptionSetupPanel.setVisible(false);
                     subscriptionSetupPanel.setManaged(false);
@@ -210,7 +187,6 @@ public class UserDetailsController implements Initializable {
                     subscriptionBenefitsPanel.setManaged(true);
                 }
             } else {
-                // Unsubscribed brand users
                 if (subscriptionSetupPanel != null) {
                     subscriptionSetupPanel.setVisible(true);
                     subscriptionSetupPanel.setManaged(true);
@@ -221,7 +197,6 @@ public class UserDetailsController implements Initializable {
                 }
             }
         } else {
-            // Legacy users (CUSTOMER, EMPLOYEE, ADMIN)
             if (user.isEmployee() || user.isAdmin()) {
                 if (subscriptionPanel != null) {
                     subscriptionPanel.setVisible(false);
@@ -287,7 +262,7 @@ public class UserDetailsController implements Initializable {
         }
     }
 
-    /* ----------------- Buttons / actions you already had ----------------- */
+    /* ----------------- Buttons / actions ----------------- */
 
     @FXML
     void handleSetupSubscription(ActionEvent event) {
@@ -320,12 +295,6 @@ public class UserDetailsController implements Initializable {
     }
 
     private boolean validateSubscriptionSetupFields() {
-        System.out.println("Validating subscription fields...");
-        System.out.println("Tax Registration: " + (taxRegistrationField != null ? "'" + taxRegistrationField.getText() + "'" : "NULL"));
-        System.out.println("Customer ID: " + (customerIdField != null ? "'" + customerIdField.getText() + "'" : "NULL"));
-        System.out.println("Credit Card: " + (creditCardField != null ? "'" + creditCardField.getText() + "'" : "NULL"));
-        System.out.println("Customer Name: " + (customerNameField != null ? "'" + customerNameField.getText() + "'" : "NULL"));
-
         if (taxRegistrationField == null || taxRegistrationField.getText().trim().isEmpty()) {
             showMessage("Tax registration number is required", false);
             return false;
@@ -520,21 +489,19 @@ public class UserDetailsController implements Initializable {
         System.out.println("Complaint submitted? " + response.isSuccess() + " | message: " + response.getMessage());
 
         Platform.runLater(() -> {
-            Alert alert;
-            if (response.isSuccess()) {
-                alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Complaint Submitted");
-                alert.setHeaderText(null);
-                alert.setContentText(response.getMessage());
-            } else {
-                alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Complaint Submission Failed");
-                alert.setHeaderText(null);
-                alert.setContentText(response.getMessage());
-            }
-            alert.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            Alert alert = new Alert(response.isSuccess() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+            alert.setTitle(response.isSuccess() ? "Complaint Submitted" : "Complaint Submission Failed");
+            alert.setHeaderText(null);
+            alert.setContentText(response.getMessage());
             alert.setResizable(false);
             alert.show();
+
+            if (response.isSuccess()) {
+                javafx.animation.PauseTransition delay =
+                        new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
+                delay.setOnFinished(e -> alert.close());
+                delay.play();
+            }
         });
     }
 
@@ -565,7 +532,7 @@ public class UserDetailsController implements Initializable {
                     currentUser.setCustomerName(updatedUser.getCustomerName());
 
                     updateSubscriptionStatus(currentUser);
-                    applyReportPermission(currentUser); // in case role/flags changed
+                    applyReportPermission(currentUser);
                 }
             } else {
                 showMessage(response.getMessage(), false);
