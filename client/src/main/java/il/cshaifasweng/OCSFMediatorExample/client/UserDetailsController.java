@@ -139,39 +139,40 @@ public class UserDetailsController implements Initializable {
         }
     }
 
-    private void configureRoleBasedAccess(User user) {
-        // Admin panel button
-        if (adminPanelButton != null) {
-            boolean isAdmin = user != null && user.isAdmin();
-            adminPanelButton.setVisible(isAdmin);
-            adminPanelButton.setManaged(isAdmin);
-        }
-
-        // Employee complaints button — only employees (not admins)
-        if (employeeComplaintsButton != null) {
-            boolean showEmpComplaints = user != null && user.isEmployee() && !user.isAdmin();
-            employeeComplaintsButton.setVisible(showEmpComplaints);
-            employeeComplaintsButton.setManaged(showEmpComplaints);
-        }
-
-        // Submit complaint — for customers, store-specific users, and brand users (hide for admins)
-        if (submitComplaintButton != null) {
-            boolean canSubmitComplaint =
-                    user != null &&
-                            (user.getUserType().toString().equals("CUSTOMER")
-                                    || user.getUserType().toString().equals("STORE_SPECIFIC")
-                                    || user.getUserType().toString().equals("BRAND_USER"))
-                            && !user.isAdmin();
-
-            submitComplaintButton.setVisible(canSubmitComplaint);
-            submitComplaintButton.setManaged(canSubmitComplaint);
-        }
-
-        // Subscription panel & related controls
-        configureSubscriptionPanelVisibility(user);
-
-        // (Reports button is handled separately via applyReportPermission(user))
+   private void configureRoleBasedAccess(User user) {
+    // Admin panel button
+    if (adminPanelButton != null) {
+        boolean isAdmin = user != null && user.isAdmin();
+        adminPanelButton.setVisible(isAdmin);
+        adminPanelButton.setManaged(isAdmin);
     }
+
+    // Employee complaints button — only employees (not admins)
+    if (employeeComplaintsButton != null) {
+        boolean showEmpComplaints = user != null && user.isEmployee() && !user.isAdmin();
+        employeeComplaintsButton.setVisible(showEmpComplaints);
+        employeeComplaintsButton.setManaged(showEmpComplaints);
+    }
+
+    // Submit complaint — for customers, store-specific users, and brand users (hide for admins)
+    if (submitComplaintButton != null) {
+        boolean canSubmitComplaint =
+                user != null &&
+                (user.getUserType().toString().equals("CUSTOMER")
+                 || user.getUserType().toString().equals("STORE_SPECIFIC")
+                 || user.getUserType().toString().equals("BRAND_USER"))
+                && !user.isAdmin();
+
+        submitComplaintButton.setVisible(canSubmitComplaint);
+        submitComplaintButton.setManaged(canSubmitComplaint);
+    }
+
+    // Subscription panel & related controls
+    configureSubscriptionPanelVisibility(user);
+
+    // (Reports button is handled separately via applyReportPermission(user))
+}
+
 
 
     private void configureSubscriptionPanelVisibility(User user) {
@@ -493,26 +494,28 @@ public class UserDetailsController implements Initializable {
         }
     }
 
-    @Subscribe
-    public void onComplaintResponse(ComplaintResponse response) {
-        System.out.println("Complaint submitted? " + response.isSuccess() + " | message: " + response.getMessage());
+   @Subscribe
+public void onComplaintResponse(ComplaintResponse response) {
+    System.out.println("Complaint submitted? " + response.isSuccess() + " | message: " + response.getMessage());
 
-        Platform.runLater(() -> {
-            Alert alert = new Alert(response.isSuccess() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
-            alert.setTitle(response.isSuccess() ? "Complaint Submitted" : "Complaint Submission Failed");
-            alert.setHeaderText(null);
-            alert.setContentText(response.getMessage());
-            alert.setResizable(false);
-            alert.show();
+    Platform.runLater(() -> {
+        Alert alert = new Alert(response.isSuccess() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+        alert.setTitle(response.isSuccess() ? "Complaint Submitted" : "Complaint Submission Failed");
+        alert.setHeaderText(null);
+        alert.setContentText(response.getMessage());
+        alert.setResizable(false);
+        alert.show();
 
-            if (response.isSuccess()) {
-                javafx.animation.PauseTransition delay =
-                        new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
-                delay.setOnFinished(e -> alert.close());
-                delay.play();
-            }
-        });
-    }
+        // Auto-close after 3 seconds for success messages
+        if (response.isSuccess()) {
+            javafx.animation.PauseTransition delay =
+                    new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
+            delay.setOnFinished(e -> alert.close());
+            delay.play();
+        }
+    });
+}
+
 
     @Subscribe
     public void onAccountSetupResponse(AccountSetupResponse response) {
