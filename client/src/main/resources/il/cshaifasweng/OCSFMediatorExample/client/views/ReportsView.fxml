@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="il.cshaifasweng.OCSFMediatorExample.client.reports.ReportsController"
+      spacing="12" fillWidth="true">
+    <padding>
+        <Insets top="16" right="16" bottom="16" left="16"/>
+    </padding>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Reports" style="-fx-text-fill:#2E8B57;">
+            <font>
+                <Font name="System Bold" size="20"/>
+            </font>
+        </Label>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="statusLabel" text="Ready."/>
+    </HBox>
+
+    <!-- row 1 type scope and store -->
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <Label text="Type:"/>
+        <ComboBox fx:id="typeCombo" prefWidth="240"/>
+        <Label text="Scope:"/>
+        <ComboBox fx:id="scopeCombo" prefWidth="180"/>
+        <Label text="Store:"/>
+        <ComboBox fx:id="storeCombo" prefWidth="220" promptText="Select store" disable="true"/>
+    </HBox>
+
+    <!-- data range and run-->
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <Label text="From:"/>
+        <DatePicker fx:id="fromDatePicker" />
+        <Label text="To:"/>
+        <DatePicker fx:id="toDatePicker" />
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="runButton" text="Run" onAction="#handleRunReports"
+                style="-fx-background-color:#2E8B57; -fx-text-fill:white;"/>
+    </HBox>
+    <!-- Quarters -->
+    <HBox spacing="10.0" fx:id="quarterRowA" visible="false" managed="false">
+        <children>
+            <Label text="Quarter:" />
+            <ComboBox fx:id="quarterComboA" prefWidth="160.0" />
+            <Label text="Year:" />
+            <ComboBox fx:id="yearComboA" prefWidth="110.0" />
+        </children>
+    </HBox>
+    <!-- Quarters -->
+    <HBox spacing="10.0" fx:id="quarterRowB" visible="false" managed="false">
+        <children>
+            <Label text="Compare Quarter:" />
+            <ComboBox fx:id="quarterComboB" prefWidth="160.0" />
+            <Label text="Year:" />
+            <ComboBox fx:id="yearComboB" prefWidth="110.0" />
+        </children>
+    </HBox>
+
+    <!-- Controls Row 3: Compare toggle + Date Range B -->
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <CheckBox fx:id="compareToggle" text="Compare two ranges"/>
+        <Label text="From B:"/>
+        <DatePicker fx:id="fromDatePickerB" disable="true"/>
+        <Label text="To B:"/>
+        <DatePicker fx:id="toDatePickerB" disable="true"/>
+    </HBox>
+
+    <!-- Chart -->
+    <BarChart fx:id="barChart" prefHeight="360" animated="false">
+        <xAxis>
+            <CategoryAxis fx:id="xAxis" label="Label"/>
+        </xAxis>
+        <yAxis>
+            <NumberAxis fx:id="yAxis" label="Value"/>
+        </yAxis>
+    </BarChart>
+
+    <!-- Compare Table -->
+    <TableView fx:id="compareTable" visible="false" managed="false" prefHeight="220">
+        <columns>
+            <TableColumn fx:id="colLabel" text="Label" prefWidth="240"/>
+            <TableColumn fx:id="colA" text="Range A" prefWidth="120"/>
+            <TableColumn fx:id="colB" text="Range B" prefWidth="120"/>
+            <TableColumn fx:id="colDelta" text="Δ (B−A)" prefWidth="120"/>
+            <TableColumn fx:id="colDeltaPct" text="Δ% (B vs A)" prefWidth="140"/>
+        </columns>
+    </TableView>
+
+</VBox>

@@ -36,7 +36,15 @@ import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintDecisionRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintActionResponse;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
+import il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequestMessage;
+import il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage;
+import il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequest;
+import il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponse;
+import il.cshaifasweng.OCSFMediatorExample.server.reports.ReportService;
+import il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequest;
 
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -146,7 +154,68 @@ public class SimpleServer extends AbstractServer {
 
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
+        System.out.println(">> SERVER got: " + (msg == null ? "null" : msg.getClass().getName()));
         System.out.println("Server received message: " + msg + " (Type: " + msg.getClass().getSimpleName() + ")");
+        // ===== Reports request handling (place BEFORE other returns) =====
+        if (msg instanceof il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportCompareRequestMessage) {
+            System.out.println("[Reports] Compare request received");
+            var in  = (il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportCompareRequestMessage) msg;
+            var out = new il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportCompareResponseMessage();
+
+            try {
+                var svc = new il.cshaifasweng.OCSFMediatorExample.server.reports.ReportService(
+                        il.cshaifasweng.OCSFMediatorExample.server.App.session);
+                var res = svc.compare(in.getRequest(), /* currentUser */ null);
+                out.setOk(true);
+                out.setResponse(res);
+                out.setError(null);
+                System.out.println("[Reports] Compare OK — rows=" + res.getDiffs().size());
+            } catch (Throwable t) {
+                t.printStackTrace();
+                out.setOk(false);
+                out.setResponse(null);
+                out.setError(t.getMessage());
+                System.err.println("[Reports] Compare ERROR: " + t.getMessage());
+            }
+
+            try { client.sendToClient(out); }
+            catch (Throwable sendErr) { sendErr.printStackTrace(); }
+            return;
+        }
+        if (msg instanceof il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequestMessage) {
+            System.out.println("[Reports] Request received");
+
+            il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequestMessage reqMsg =
+                    (il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequestMessage) msg;
+
+            il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage out =
+                    new il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage();
+            try {
+                var svc = new il.cshaifasweng.OCSFMediatorExample.server.reports.ReportService(
+                        il.cshaifasweng.OCSFMediatorExample.server.App.session
+                );
+                var res = svc.run(reqMsg.getRequest(), null);
+                out.setOk(true);
+                out.setResponse(res);
+                out.setError(null);
+                System.out.println("[Reports] OK — rows=" + (res == null ? 0 : res.getData().size()));
+            } catch (Throwable t) {
+                t.printStackTrace();
+                out.setOk(false);
+                out.setResponse(null);
+                out.setError(t.getMessage());
+                System.err.println("[Reports] ERROR: " + t.getMessage());
+            }
+
+            try {
+                client.sendToClient(out);
+                System.out.println("[Reports] Response sent (ok=" + out.isOk() + ")");
+            } catch (Throwable sendErr) {
+                sendErr.printStackTrace();
+                System.err.println("[Reports] Failed to send response: " + sendErr.getMessage());
+            }
+            return;
+        }
         if (msg instanceof String) {
             String msgString = (String) msg;
             System.out.println("Processing string message: '" + msgString + "'");
@@ -186,6 +255,23 @@ public class SimpleServer extends AbstractServer {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            } else if (msg instanceof il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequestMessage) {
+                var req = ((il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequestMessage) msg).getRequest();
+                il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage out;
+                try {
+                    var svc = new il.cshaifasweng.OCSFMediatorExample.server.reports.ReportService(App.session);
+                    var res = svc.run(req, null); // TODO: pass the real authenticated user later
+                    out = new il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage(true, res, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    out = new il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage(false, null, e.getMessage());
+                }
+                try {
+                    client.sendToClient(out);
+                } catch (IOException io) {
+                    io.printStackTrace();
+                }
+                return;
             } else if (msgString.startsWith("delete")) {
                 Item item = App.session.get(Item.class, Integer.parseInt(msgString.split(" ")[1]));
                 File imageFile = item.getImageFile();

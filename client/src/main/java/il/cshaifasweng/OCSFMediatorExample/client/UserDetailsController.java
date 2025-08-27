@@ -10,13 +10,11 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.User;
-import il.cshaifasweng.OCSFMediatorExample.entities.Store;
-import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionRequest;
-import il.cshaifasweng.OCSFMediatorExample.entities.SubscriptionResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.UserSubscriptionSetupRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.AccountSetupResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintRequest;
 import il.cshaifasweng.OCSFMediatorExample.entities.ComplaintResponse;
+import il.cshaifasweng.OCSFMediatorExample.client.reports.ReportsLauncher;
 
 import java.io.IOException;
 import java.net.URL;
@@ -25,103 +23,81 @@ import java.util.ResourceBundle;
 
 public class UserDetailsController implements Initializable {
 
-    @FXML
-    private Label welcomeLabel;
+    @FXML private Label welcomeLabel;
+    @FXML private Label usernameLabel;
+    @FXML private Label fullNameLabel;
+    @FXML private Label emailLabel;
+    @FXML private Label phoneLabel;
+    @FXML private Label addressLabel;
 
-    @FXML
-    private Label usernameLabel;
+    @FXML private Label subscriptionStatusLabel;
+    @FXML private Label subscriptionTypeLabel;
+    @FXML private Label subscriptionDatesLabel;
+    @FXML private Label subscriptionMessageLabel;
 
-    @FXML
-    private Label fullNameLabel;
+    @FXML private Button logoutButton;
+    @FXML private Button browseCatalogueButton;
+    @FXML private Button viewOrdersButton;
+    @FXML private Button submitComplaintButton;
+    @FXML private Button adminPanelButton;
+    @FXML private Button employeeComplaintsButton;
 
-    @FXML
-    private Label emailLabel;
+    // Reports button – make sure userDetails.fxml has fx:id="viewReportsButton" and onAction="#handleViewReports"
+    @FXML private Button viewReportsButton;
 
-    @FXML
-    private Label phoneLabel;
+    @FXML private VBox subscriptionPanel;
+    @FXML private VBox subscriptionBenefitsPanel;
 
-    @FXML
-    private Label addressLabel;
-
-    @FXML
-    private Label subscriptionStatusLabel;
-
-    @FXML
-    private Label subscriptionTypeLabel;
-
-    @FXML
-    private Label subscriptionDatesLabel;
-
-    @FXML
-    private Label subscriptionMessageLabel;
-
-
-    @FXML
-    private Button logoutButton;
-
-    @FXML
-    private Button browseCatalogueButton;
-
-    @FXML
-    private Button viewOrdersButton;
-
-    @FXML
-    private Button submitComplaintButton;
-
-    @FXML
-    private VBox subscriptionPanel;
-
-    @FXML
-    private VBox subscriptionBenefitsPanel;
-
-    @FXML
-    private Button adminPanelButton;
-
-    @FXML
-    private Button employeeComplaintsButton;
-
-    @FXML
-    private Label userRoleLabel;
-
-    @FXML
-    private Label userTypeLabel;
-
-    @FXML
-    private Label storeInfoLabel;
-
-    @FXML
-    private Label storeNameLabel;
+    @FXML private Label userRoleLabel;
+    @FXML private Label userTypeLabel;
+    @FXML private Label storeInfoLabel;
+    @FXML private Label storeNameLabel;
 
     // Annual subscription setup fields
-    @FXML
-    private TextField taxRegistrationField;
-
-    @FXML
-    private TextField customerIdField;
-
-    @FXML
-    private TextField creditCardField;
-
-    @FXML
-    private TextField customerNameField;
-
-    @FXML
-    private Button setupSubscriptionButton;
-
-    @FXML
-    private VBox subscriptionSetupPanel;
-
-    @FXML
-    private Label accountValueLabel;
-
-    @FXML
-    private Label discountInfoLabel;
+    @FXML private TextField taxRegistrationField;
+    @FXML private TextField customerIdField;
+    @FXML private TextField creditCardField;
+    @FXML private TextField customerNameField;
+    @FXML private Button setupSubscriptionButton;
+    @FXML private VBox subscriptionSetupPanel;
+    @FXML private Label accountValueLabel;
+    @FXML private Label discountInfoLabel;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         EventBus.getDefault().register(this);
         loadUserDetails();
     }
+
+    /* ----------------- REPORTS: button + permission ----------------- */
+
+    @FXML
+    private void handleViewReports(ActionEvent e) {
+        User u = LoginController.getCurrentUser();
+        if (!canSeeReports(u)) {
+            showMessage("You do not have permission to view reports.", false);
+            return;
+        }
+        ReportsLauncher.open();
+    }
+
+    private void applyReportPermission(User u) {
+        boolean canSee = canSeeReports(u);
+        if (viewReportsButton != null) {
+            viewReportsButton.setVisible(canSee);
+            viewReportsButton.setManaged(canSee);
+        }
+    }
+
+    /** Permission rule: Admins (network) and employees tied to a store can see reports. Customers cannot. */
+    private boolean canSeeReports(User u) {
+        if (u == null) return false;
+        if (u.isAdmin()) return true;                      // network manager/admin
+        if (u.isEmployee() && u.getStore() != null) return true; // branch staff/manager
+        return false;                                      // customers & others
+    }
+
+    /* ----------------- EXISTING SCREEN LOGIC ----------------- */
 
     private void loadUserDetails() {
         User currentUser = LoginController.getCurrentUser();
@@ -133,38 +109,29 @@ public class UserDetailsController implements Initializable {
             phoneLabel.setText(currentUser.getPhone());
             addressLabel.setText(currentUser.getAddress());
 
-            // Display user role
             userRoleLabel.setText("Role: " + currentUser.getUserType().toString());
-            
-            // Display user type and store information
             displayUserTypeAndStore(currentUser);
-            
-            // Configure role-based access
             configureRoleBasedAccess(currentUser);
-            
+            applyReportPermission(currentUser);
             updateSubscriptionStatus(currentUser);
         }
     }
 
     private void displayUserTypeAndStore(User user) {
-        // Display user type
         if (user.isBrandUser()) {
             userTypeLabel.setText("Brand User");
             userTypeLabel.setTextFill(javafx.scene.paint.Color.BLUE);
-            // Hide store information for brand users
             storeInfoLabel.setVisible(false);
             storeNameLabel.setVisible(false);
         } else if (user.isStoreSpecific()) {
             userTypeLabel.setText("Store-Specific User");
             userTypeLabel.setTextFill(javafx.scene.paint.Color.PURPLE);
-            // Show store information for store-specific users
             if (user.getStore() != null) {
                 storeInfoLabel.setVisible(true);
                 storeNameLabel.setVisible(true);
                 storeNameLabel.setText(user.getStore().getStoreName());
             }
         } else {
-            // Legacy user types (CUSTOMER, EMPLOYEE, ADMIN)
             userTypeLabel.setText("Legacy User");
             userTypeLabel.setTextFill(javafx.scene.paint.Color.GRAY);
             storeInfoLabel.setVisible(false);
@@ -172,50 +139,55 @@ public class UserDetailsController implements Initializable {
         }
     }
 
-    private void configureRoleBasedAccess(User user) {
-        // Show/hide admin panel button based on user role
-        if (adminPanelButton != null) {
-            adminPanelButton.setVisible(user.isAdmin());
-            adminPanelButton.setManaged(user.isAdmin());
-        }
-        
-        // Show/hide employee complaints button - only for employees (not admins)
-        if (employeeComplaintsButton != null) {
-            boolean isEmployee = user.isEmployee() && !user.isAdmin();
-            employeeComplaintsButton.setVisible(isEmployee);
-            employeeComplaintsButton.setManaged(isEmployee);
-        }
-        
-        // Show/hide complaint button - for customers, store-specific users, and brand users (hide for admins)
-        if (submitComplaintButton != null) {
-            boolean canSubmitComplaint = (user.getUserType().toString().equals("CUSTOMER") || 
-                                        user.getUserType().toString().equals("STORE_SPECIFIC") ||
-                                        user.getUserType().toString().equals("BRAND_USER")) && 
-                                       !user.isAdmin();
-            submitComplaintButton.setVisible(canSubmitComplaint);
-            submitComplaintButton.setManaged(canSubmitComplaint);
-        }
-        
-        // Configure subscription panel visibility based on user type
-        configureSubscriptionPanelVisibility(user);
+   private void configureRoleBasedAccess(User user) {
+    // Admin panel button
+    if (adminPanelButton != null) {
+        boolean isAdmin = user != null && user.isAdmin();
+        adminPanelButton.setVisible(isAdmin);
+        adminPanelButton.setManaged(isAdmin);
     }
+
+    // Employee complaints button — only employees (not admins)
+    if (employeeComplaintsButton != null) {
+        boolean showEmpComplaints = user != null && user.isEmployee() && !user.isAdmin();
+        employeeComplaintsButton.setVisible(showEmpComplaints);
+        employeeComplaintsButton.setManaged(showEmpComplaints);
+    }
+
+    // Submit complaint — for customers, store-specific users, and brand users (hide for admins)
+    if (submitComplaintButton != null) {
+        boolean canSubmitComplaint =
+                user != null &&
+                (user.getUserType().toString().equals("CUSTOMER")
+                 || user.getUserType().toString().equals("STORE_SPECIFIC")
+                 || user.getUserType().toString().equals("BRAND_USER"))
+                && !user.isAdmin();
+
+        submitComplaintButton.setVisible(canSubmitComplaint);
+        submitComplaintButton.setManaged(canSubmitComplaint);
+    }
+
+    // Subscription panel & related controls
+    configureSubscriptionPanelVisibility(user);
+
+    // (Reports button is handled separately via applyReportPermission(user))
+}
+
+
 
     private void configureSubscriptionPanelVisibility(User user) {
         if (user.isStoreSpecific()) {
-            // Store-specific users: Hide entire subscription panel
             if (subscriptionPanel != null) {
                 subscriptionPanel.setVisible(false);
                 subscriptionPanel.setManaged(false);
             }
         } else if (user.isBrandUser()) {
-            // Brand users: Show subscription panel
             if (subscriptionPanel != null) {
                 subscriptionPanel.setVisible(true);
                 subscriptionPanel.setManaged(true);
             }
-            
+
             if (user.isSubscriptionActive()) {
-                // Subscribed brand users: Hide setup form, show active subscription info
                 if (subscriptionSetupPanel != null) {
                     subscriptionSetupPanel.setVisible(false);
                     subscriptionSetupPanel.setManaged(false);
@@ -225,7 +197,6 @@ public class UserDetailsController implements Initializable {
                     subscriptionBenefitsPanel.setManaged(true);
                 }
             } else {
-                // Unsubscribed brand users: Show setup form, hide benefits
                 if (subscriptionSetupPanel != null) {
                     subscriptionSetupPanel.setVisible(true);
                     subscriptionSetupPanel.setManaged(true);
@@ -236,15 +207,12 @@ public class UserDetailsController implements Initializable {
                 }
             }
         } else {
-            // Legacy users (CUSTOMER, EMPLOYEE, ADMIN): Keep existing behavior
             if (user.isEmployee() || user.isAdmin()) {
-                // Employees and admins don't need subscription setup
                 if (subscriptionPanel != null) {
                     subscriptionPanel.setVisible(false);
                     subscriptionPanel.setManaged(false);
                 }
             } else {
-                // Legacy customers can setup subscriptions
                 if (subscriptionPanel != null) {
                     subscriptionPanel.setVisible(true);
                     subscriptionPanel.setManaged(true);
@@ -262,16 +230,15 @@ public class UserDetailsController implements Initializable {
             subscriptionStatusLabel.setText("Active");
             subscriptionStatusLabel.setTextFill(javafx.scene.paint.Color.GREEN);
             subscriptionTypeLabel.setText(user.getSubscriptionType().toString());
-            
+
             if (user.getSubscriptionStartDate() != null && user.getSubscriptionEndDate() != null) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                subscriptionDatesLabel.setText("Valid from " + 
-                    user.getSubscriptionStartDate().format(formatter) + 
-                    " to " + user.getSubscriptionEndDate().format(formatter));
+                subscriptionDatesLabel.setText("Valid from " +
+                        user.getSubscriptionStartDate().format(formatter) +
+                        " to " + user.getSubscriptionEndDate().format(formatter));
                 subscriptionDatesLabel.setVisible(true);
             }
-            
-            // Show subscription benefits for active users
+
             if (accountValueLabel != null) {
                 accountValueLabel.setText("Account Value: " + user.getAccountValue() + "₪");
                 accountValueLabel.setVisible(true);
@@ -280,14 +247,11 @@ public class UserDetailsController implements Initializable {
                 discountInfoLabel.setText("Benefits: 10% discount on purchases above 50₪");
                 discountInfoLabel.setVisible(true);
             }
-            
-            // Hide subscription setup panels for active users
+
             if (subscriptionSetupPanel != null) {
                 subscriptionSetupPanel.setVisible(false);
                 subscriptionSetupPanel.setManaged(false);
             }
-            
-            // Show subscription benefits panel for active users
             if (subscriptionBenefitsPanel != null) {
                 subscriptionBenefitsPanel.setVisible(true);
                 subscriptionBenefitsPanel.setManaged(true);
@@ -297,12 +261,10 @@ public class UserDetailsController implements Initializable {
             subscriptionStatusLabel.setTextFill(javafx.scene.paint.Color.RED);
             subscriptionTypeLabel.setText("None");
             subscriptionDatesLabel.setVisible(false);
-            
-            // Hide account value and discount info for inactive users
+
             if (accountValueLabel != null) accountValueLabel.setVisible(false);
             if (discountInfoLabel != null) discountInfoLabel.setVisible(false);
-            
-            // Show annual subscription setup panel instead of old subscription request
+
             if (subscriptionSetupPanel != null && user.isCustomer()) {
                 subscriptionSetupPanel.setVisible(true);
                 subscriptionSetupPanel.setManaged(true);
@@ -310,6 +272,7 @@ public class UserDetailsController implements Initializable {
         }
     }
 
+    /* ----------------- Buttons / actions ----------------- */
 
     @FXML
     void handleSetupSubscription(ActionEvent event) {
@@ -325,11 +288,11 @@ public class UserDetailsController implements Initializable {
 
         try {
             UserSubscriptionSetupRequest request = new UserSubscriptionSetupRequest(
-                currentUser.getUserId(),
-                taxRegistrationField.getText().trim(),
-                customerIdField.getText().trim(),
-                creditCardField.getText().trim(),
-                customerNameField.getText().trim()
+                    currentUser.getUserId(),
+                    taxRegistrationField.getText().trim(),
+                    customerIdField.getText().trim(),
+                    creditCardField.getText().trim(),
+                    customerNameField.getText().trim()
             );
 
             App.getClient().sendToServer(request);
@@ -342,13 +305,6 @@ public class UserDetailsController implements Initializable {
     }
 
     private boolean validateSubscriptionSetupFields() {
-        // Debug logging
-        System.out.println("Validating subscription fields...");
-        System.out.println("Tax Registration: " + (taxRegistrationField != null ? "'" + taxRegistrationField.getText() + "'" : "NULL"));
-        System.out.println("Customer ID: " + (customerIdField != null ? "'" + customerIdField.getText() + "'" : "NULL"));
-        System.out.println("Credit Card: " + (creditCardField != null ? "'" + creditCardField.getText() + "'" : "NULL"));
-        System.out.println("Customer Name: " + (customerNameField != null ? "'" + customerNameField.getText() + "'" : "NULL"));
-        
         if (taxRegistrationField == null || taxRegistrationField.getText().trim().isEmpty()) {
             showMessage("Tax registration number is required", false);
             return false;
@@ -366,7 +322,6 @@ public class UserDetailsController implements Initializable {
             return false;
         }
 
-        // Basic credit card validation
         String creditCard = creditCardField.getText().trim().replaceAll("\\s+", "");
         if (creditCard.length() < 13 || creditCard.length() > 19) {
             showMessage("Please enter a valid credit card number", false);
@@ -379,18 +334,13 @@ public class UserDetailsController implements Initializable {
     @FXML
     void handleLogout(ActionEvent event) {
         System.out.println("Logout requested by user");
-        
-        // Use SessionService to properly terminate server session
         EventBus.getDefault().unregister(this);
         SessionService.getInstance().logout();
-        
-        // Note: SessionService will handle navigation to login screen after server response
     }
 
     @FXML
     void handleBrowseCatalogue(ActionEvent event) {
         try {
-            // Don't send catalogue request here - let CatalogueController handle it
             App.setRoot("catalogue");
         } catch (IOException e) {
             showMessage("Error loading catalogue", false);
@@ -406,13 +356,9 @@ public class UserDetailsController implements Initializable {
                 showMessage("Please log in to view your orders", false);
                 return;
             }
-            
             System.out.println("View Orders requested for user: " + currentUser.getUsername());
-            
-            // Navigate to order history page
             EventBus.getDefault().unregister(this);
             App.setRoot("orderHistory");
-            
         } catch (IOException e) {
             showMessage("Error loading order history: " + e.getMessage(), false);
             e.printStackTrace();
@@ -429,7 +375,7 @@ public class UserDetailsController implements Initializable {
             showMessage("Access denied: Admin privileges required", false);
             return;
         }
-        
+
         try {
             App.setRoot("admin");
         } catch (IOException e) {
@@ -438,7 +384,6 @@ public class UserDetailsController implements Initializable {
         }
     }
 
-
     @FXML
     void handleEmployeeComplaints(ActionEvent event) {
         User currentUser = LoginController.getCurrentUser();
@@ -446,7 +391,7 @@ public class UserDetailsController implements Initializable {
             showMessage("Access denied: Employee privileges required", false);
             return;
         }
-        
+
         try {
             App.setRoot("employeeComplaints");
         } catch (IOException e) {
@@ -462,7 +407,6 @@ public class UserDetailsController implements Initializable {
             showMessage("Please log in to submit a complaint", false);
             return;
         }
-
         showComplaintDialog(currentUser);
     }
 
@@ -471,7 +415,6 @@ public class UserDetailsController implements Initializable {
         dialog.setTitle("Submit Complaint");
         dialog.setHeaderText("Please describe your complaint:");
 
-        // Create dialog content
         VBox content = new VBox(10);
         content.setPrefWidth(400);
 
@@ -493,21 +436,18 @@ public class UserDetailsController implements Initializable {
         content.getChildren().addAll(emailLabel, emailField, orderNumberLabel, orderNumberField, descriptionLabel, descriptionArea);
         dialog.getDialogPane().setContent(content);
 
-        // Add buttons
         ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(submitButtonType, ButtonType.CANCEL);
 
         Button submitButton = (Button) dialog.getDialogPane().lookupButton(submitButtonType);
         submitButton.setDefaultButton(true);
 
-        // Handle Enter key in description area
         descriptionArea.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode() == javafx.scene.input.KeyCode.ENTER && keyEvent.isControlDown()) {
                 submitButton.fire();
             }
         });
 
-        // Convert result when submit is clicked
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == submitButtonType) {
                 String description = descriptionArea.getText().trim();
@@ -523,20 +463,17 @@ public class UserDetailsController implements Initializable {
                 }
                 String orderNumber = orderNumberField.getText().trim();
                 String finalDescription = description;
-                
-                // Add order number to beginning of description if provided (with brackets)
+
                 if (!orderNumber.isEmpty()) {
                     finalDescription = "[" + orderNumber + "]-" + description;
                 }
-                
+
                 ComplaintRequest request = new ComplaintRequest(emailField.getText().trim(), finalDescription);
                 if (!orderNumber.isEmpty()) {
-                    // Use reflection to safely set order number if method exists
                     try {
                         java.lang.reflect.Method setOrderNumberMethod = request.getClass().getMethod("setOrderNumber", String.class);
                         setOrderNumberMethod.invoke(request, orderNumber);
-                    } catch (Exception e) {
-                        // Method doesn't exist in compiled version, ignore silently
+                    } catch (Exception ex) {
                         System.out.println("Order number feature not available in current build");
                     }
                 }
@@ -545,46 +482,39 @@ public class UserDetailsController implements Initializable {
             return null;
         });
 
-        // Show dialog and handle result
-        dialog.showAndWait().ifPresent(complaintRequest -> {
-            submitComplaintToServer(complaintRequest);
-        });
+        dialog.showAndWait().ifPresent(this::submitComplaintToServer);
     }
 
     private void submitComplaintToServer(ComplaintRequest request) {
         try {
             App.getClient().sendToServer(request);
-            // Don't show immediate message - wait for server response
         } catch (IOException e) {
             showMessage("Failed to submit complaint: " + e.getMessage(), false);
             e.printStackTrace();
         }
     }
 
-    @Subscribe
-    public void onComplaintResponse(ComplaintResponse response) {
-        // Print to console for debugging
-        System.out.println("Complaint submitted? " + response.isSuccess() + " | message: " + response.getMessage());
-        
-        Platform.runLater(() -> {
-            // Use a simple, single-click alert
-            Alert alert = new Alert(response.isSuccess() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
-            alert.setTitle(response.isSuccess() ? "Complaint Submitted" : "Complaint Submission Failed");
-            alert.setHeaderText(null);
-            alert.setContentText(response.getMessage());
-            
-            // Remove all modality and just show normally
-            alert.setResizable(false);
-            alert.show();
-            
-            // Auto-close after 3 seconds for success messages
-            if (response.isSuccess()) {
-                javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
-                delay.setOnFinished(e -> alert.close());
-                delay.play();
-            }
-        });
-    }
+   @Subscribe
+public void onComplaintResponse(ComplaintResponse response) {
+    System.out.println("Complaint submitted? " + response.isSuccess() + " | message: " + response.getMessage());
+
+    Platform.runLater(() -> {
+        Alert alert = new Alert(response.isSuccess() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+        alert.setTitle(response.isSuccess() ? "Complaint Submitted" : "Complaint Submission Failed");
+        alert.setHeaderText(null);
+        alert.setContentText(response.getMessage());
+        alert.setResizable(false);
+        alert.show();
+
+        // Auto-close after 3 seconds for success messages
+        if (response.isSuccess()) {
+            javafx.animation.PauseTransition delay =
+                    new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
+            delay.setOnFinished(e -> alert.close());
+            delay.play();
+        }
+    });
+}
 
 
     @Subscribe
@@ -595,17 +525,14 @@ public class UserDetailsController implements Initializable {
 
             if (response.isSuccess()) {
                 showMessage("Annual subscription activated successfully! You now have 10% discount on purchases above 50₪.", true);
-                
-                // Clear the form fields
+
                 taxRegistrationField.clear();
                 customerIdField.clear();
                 creditCardField.clear();
                 customerNameField.clear();
-                
-                // Update current user's subscription status
+
                 User currentUser = LoginController.getCurrentUser();
                 if (currentUser != null && response.getUser() != null) {
-                    // Update the current user with the new subscription data
                     User updatedUser = response.getUser();
                     currentUser.setSubscriptionType(updatedUser.getSubscriptionType());
                     currentUser.setSubscriptionActive(updatedUser.isSubscriptionActive());
@@ -615,8 +542,9 @@ public class UserDetailsController implements Initializable {
                     currentUser.setTaxRegistrationNumber(updatedUser.getTaxRegistrationNumber());
                     currentUser.setCustomerId(updatedUser.getCustomerId());
                     currentUser.setCustomerName(updatedUser.getCustomerName());
-                    
+
                     updateSubscriptionStatus(currentUser);
+                    applyReportPermission(currentUser);
                 }
             } else {
                 showMessage(response.getMessage(), false);
@@ -627,7 +555,7 @@ public class UserDetailsController implements Initializable {
     private void showMessage(String message, boolean isSuccess) {
         subscriptionMessageLabel.setText(message);
         subscriptionMessageLabel.setTextFill(
-            isSuccess ? javafx.scene.paint.Color.GREEN : javafx.scene.paint.Color.RED
+                isSuccess ? javafx.scene.paint.Color.GREEN : javafx.scene.paint.Color.RED
         );
         subscriptionMessageLabel.setVisible(true);
     }

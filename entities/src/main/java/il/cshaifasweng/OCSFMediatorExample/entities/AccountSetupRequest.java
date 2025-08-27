@@ -101,10 +101,7 @@ public class AccountSetupRequest implements Serializable {
         if (!basicValid) {
             return false;
         }
-        
-        // Additional validation based on user type
         if (isBrandUser()) {
-            // Brand users must provide subscription details
             return taxRegistrationNumber != null && !taxRegistrationNumber.trim().isEmpty() &&
                    customerId != null && !customerId.trim().isEmpty() &&
                    creditCard != null && !creditCard.trim().isEmpty() &&

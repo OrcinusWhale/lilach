@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<MenuBar xmlns:fx="http://javafx.com/fxml"
+         fx:controller="il.cshaifasweng.OCSFMediatorExample.client.AppMenuController">
+    <menus>
+        <Menu text="Tools">
+            <MenuItem text="Reports" onAction="#openReports"/>
+        </Menu>
+    </menus>
+</MenuBar>

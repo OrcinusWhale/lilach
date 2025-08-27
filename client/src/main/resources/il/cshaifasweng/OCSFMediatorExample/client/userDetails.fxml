@@ -81,6 +81,7 @@
                   <VBox spacing="10.0">
                      <children>
                         <Button fx:id="browseCatalogueButton" onAction="#handleBrowseCatalogue" prefWidth="200.0" style="-fx-background-color: #2E8B57; -fx-text-fill: white;" text="Browse Catalogue" />
+                        <Button fx:id="reportsButton" onAction="#handleViewReports" prefWidth="200.0" style="-fx-background-color: #6f42c1; -fx-text-fill: white;" text="Reports"/>
                         <Button fx:id="viewOrdersButton" onAction="#handleViewOrders" prefWidth="200.0" style="-fx-background-color: #4169E1; -fx-text-fill: white;" text="View My Orders" />
                         <Button fx:id="submitComplaintButton" onAction="#handleSubmitComplaint" prefWidth="200.0" style="-fx-background-color: #fd7e14; -fx-text-fill: white;" text="Submit Complaint" />
                         <Button fx:id="employeeComplaintsButton" mnemonicParsing="false" onAction="#handleEmployeeComplaints" prefWidth="200.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white;" text="Employee Complaints" visible="false" managed="false" />
