@@ -116,6 +116,22 @@ public class SimpleServer extends AbstractServer {
                 }
                 App.session.save(item);
             }
+
+            // Add tool items as requested (category Tool, price 20, without images)
+            List<String> toolNames = Arrays.asList("Shovel", "Rake", "Hoe", "Pruning Shears");
+            for (String toolName : toolNames) {
+                File imageFile = new File(imagesDir, toolName + ".jpg");
+                System.out.println("Creating tool item: " + toolName + " (Tool, price 20)");
+                Item toolItem = new Item(toolName, "Tool", 20, imageFile);
+                int storeId = new Random().nextInt(3) + 1; // Associate randomly with a store
+                Store store = App.session.get(Store.class, storeId);
+                if (store != null) {
+                    toolItem.getStores().add(store);
+                } else {
+                    System.err.println("Store with ID " + storeId + " not found. Skipping store association for tool: " + toolName);
+                }
+                App.session.save(toolItem);
+            }
             App.session.flush();
             App.session.getTransaction().commit();
         } catch (Exception exception) {
