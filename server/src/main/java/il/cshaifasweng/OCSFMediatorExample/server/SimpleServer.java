@@ -163,13 +163,22 @@ public class SimpleServer extends AbstractServer {
             var out = new il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportCompareResponseMessage();
 
             try {
-                var svc = new il.cshaifasweng.OCSFMediatorExample.server.reports.ReportService(
-                        il.cshaifasweng.OCSFMediatorExample.server.App.session);
-                var res = svc.compare(in.getRequest(), /* currentUser */ null);
-                out.setOk(true);
-                out.setResponse(res);
-                out.setError(null);
-                System.out.println("[Reports] Compare OK — rows=" + res.getDiffs().size());
+                // Check admin permission
+                il.cshaifasweng.OCSFMediatorExample.entities.User user = in.getUser();
+                if (user == null || !user.isAdmin()) {
+                    out.setOk(false);
+                    out.setResponse(null);
+                    out.setError("Access denied: Admin privileges required to view reports");
+                    System.err.println("[Reports] DENIED: Non-admin user attempted to access comparison reports");
+                } else {
+                    var svc = new il.cshaifasweng.OCSFMediatorExample.server.reports.ReportService(
+                            il.cshaifasweng.OCSFMediatorExample.server.App.session);
+                    var res = svc.compare(in.getRequest(), user);
+                    out.setOk(true);
+                    out.setResponse(res);
+                    out.setError(null);
+                    System.out.println("[Reports] Compare OK — rows=" + res.getDiffs().size());
+                }
             } catch (Throwable t) {
                 t.printStackTrace();
                 out.setOk(false);
@@ -191,14 +200,23 @@ public class SimpleServer extends AbstractServer {
             il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage out =
                     new il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage();
             try {
-                var svc = new il.cshaifasweng.OCSFMediatorExample.server.reports.ReportService(
-                        il.cshaifasweng.OCSFMediatorExample.server.App.session
-                );
-                var res = svc.run(reqMsg.getRequest(), null);
-                out.setOk(true);
-                out.setResponse(res);
-                out.setError(null);
-                System.out.println("[Reports] OK — rows=" + (res == null ? 0 : res.getData().size()));
+                // Check admin permission
+                il.cshaifasweng.OCSFMediatorExample.entities.User user = reqMsg.getUser();
+                if (user == null || !user.isAdmin()) {
+                    out.setOk(false);
+                    out.setResponse(null);
+                    out.setError("Access denied: Admin privileges required to view reports");
+                    System.err.println("[Reports] DENIED: Non-admin user attempted to access reports");
+                } else {
+                    var svc = new il.cshaifasweng.OCSFMediatorExample.server.reports.ReportService(
+                            il.cshaifasweng.OCSFMediatorExample.server.App.session
+                    );
+                    var res = svc.run(reqMsg.getRequest(), user);
+                    out.setOk(true);
+                    out.setResponse(res);
+                    out.setError(null);
+                    System.out.println("[Reports] OK — rows=" + (res == null ? 0 : res.getData().size()));
+                }
             } catch (Throwable t) {
                 t.printStackTrace();
                 out.setOk(false);
@@ -256,12 +274,19 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
             } else if (msg instanceof il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequestMessage) {
-                var req = ((il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequestMessage) msg).getRequest();
+                var reqMsg = (il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportRequestMessage) msg;
                 il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage out;
                 try {
-                    var svc = new il.cshaifasweng.OCSFMediatorExample.server.reports.ReportService(App.session);
-                    var res = svc.run(req, null); // TODO: pass the real authenticated user later
-                    out = new il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage(true, res, null);
+                    // Check admin permission
+                    il.cshaifasweng.OCSFMediatorExample.entities.User user = reqMsg.getUser();
+                    if (user == null || !user.isAdmin()) {
+                        out = new il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage(false, null, "Access denied: Admin privileges required to view reports");
+                        System.err.println("[Reports] DENIED: Non-admin user attempted to access reports (duplicate handler)");
+                    } else {
+                        var svc = new il.cshaifasweng.OCSFMediatorExample.server.reports.ReportService(App.session);
+                        var res = svc.run(reqMsg.getRequest(), user);
+                        out = new il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage(true, res, null);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     out = new il.cshaifasweng.OCSFMediatorExample.entities.reports.ReportResponseMessage(false, null, e.getMessage());

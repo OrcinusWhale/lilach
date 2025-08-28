@@ -89,12 +89,10 @@ public class UserDetailsController implements Initializable {
         }
     }
 
-    /** Permission rule: Admins (network) and employees tied to a store can see reports. Customers cannot. */
+    /** Permission rule: Only admins can see reports. */
     private boolean canSeeReports(User u) {
         if (u == null) return false;
-        if (u.isAdmin()) return true;                      // network manager/admin
-        if (u.isEmployee() && u.getStore() != null) return true; // branch staff/manager
-        return false;                                      // customers & others
+        return u.isAdmin();                               // only network manager/admin
     }
 
     /* ----------------- EXISTING SCREEN LOGIC ----------------- */

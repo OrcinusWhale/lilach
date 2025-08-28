@@ -290,7 +290,8 @@ public class ReportsController {
                 yAxis.setLabel(rt == ReportType.ORDERS_BY_PRODUCT_TYPE ? "Quantity"
                         : (rt == ReportType.QUARTERLY_REVENUE ? "Revenue (₪)" : "Value"));
             }
-            App.getClient().sendToServer(new ReportRequestMessage(req));
+            User currentUser = LoginController.getCurrentUser();
+            App.getClient().sendToServer(new ReportRequestMessage(req, currentUser));
         } catch (Exception e) {
             if (statusLabel != null) statusLabel.setText("Error: " + e.getMessage());
         }
@@ -329,7 +330,8 @@ public class ReportsController {
             creq.setA(a);
             creq.setB(b);
 
-            App.getClient().sendToServer(new ReportCompareRequestMessage(creq));
+            User currentUser = LoginController.getCurrentUser();
+            App.getClient().sendToServer(new ReportCompareRequestMessage(creq, currentUser));
         } catch (Exception e) {
             if (statusLabel != null) statusLabel.setText("Error: " + e.getMessage());
         }
