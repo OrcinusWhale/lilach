@@ -17,6 +17,7 @@ public class CreateOrderRequest implements Serializable {
     private String specialInstructions;
     private String createdVia; // "WEB" or "IN_STORE"
     private String orderPriority; // "IMMEDIATE" or "SCHEDULED"
+    private String creditCardNumber; // Raw number (should be tokenized/encrypted in production)
 
     public CreateOrderRequest() {}
 
@@ -68,4 +69,7 @@ public class CreateOrderRequest implements Serializable {
 
     public String getOrderPriority() { return orderPriority; }
     public void setOrderPriority(String orderPriority) { this.orderPriority = orderPriority; }
+
+    public String getCreditCardNumber() { return creditCardNumber; }
+    public void setCreditCardNumber(String creditCardNumber) { this.creditCardNumber = creditCardNumber; }
 }

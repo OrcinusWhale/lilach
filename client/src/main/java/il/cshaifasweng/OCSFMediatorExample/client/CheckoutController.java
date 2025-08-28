@@ -7,11 +7,13 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -79,6 +81,18 @@ public class CheckoutController implements Initializable {
     @FXML
     private Button backToCartButton;
 
+    @FXML
+    private VBox creditCardSection;
+
+    @FXML
+    private TextField creditCardNumberField;
+
+    @FXML
+    private TextField expirationDateField;
+
+    @FXML
+    private TextField ccvField;
+
     private Cart currentCart;
     private User currentUser;
     private List<Store> availableStores;
@@ -132,6 +146,20 @@ public class CheckoutController implements Initializable {
 
         updateDeliveryFields();
         updatePriorityDescription();
+        updateCreditCardSection();
+    }
+
+    private void updateCreditCardSection() {
+        boolean needsPayment = (currentUser == null) || !currentUser.isSubscriptionActive();
+        if (creditCardSection != null) {
+            creditCardSection.setVisible(needsPayment);
+            creditCardSection.setManaged(needsPayment);
+            if (!needsPayment) {
+                if (creditCardNumberField != null) creditCardNumberField.clear();
+                if (expirationDateField != null) expirationDateField.clear();
+                if (ccvField != null) ccvField.clear();
+            }
+        }
     }
 
     private void updatePriorityDescription() {
@@ -323,6 +351,38 @@ public class CheckoutController implements Initializable {
             }
         }
 
+        // Additional validation: credit card required if user lacks subscription
+        boolean needsPayment = (currentUser == null) || !currentUser.isSubscriptionActive();
+        if (needsPayment) {
+            if (creditCardNumberField == null || expirationDateField == null || ccvField == null) {
+                showError("Payment fields missing in UI");
+                return false;
+            }
+            String cardNum = creditCardNumberField.getText() == null ? "" : creditCardNumberField.getText().trim();
+            if (!cardNum.matches("\\d{16}")) {
+                showError("Please enter a valid 16-digit credit card number");
+                return false;
+            }
+            String exp = expirationDateField.getText() == null ? "" : expirationDateField.getText().trim();
+            if (!exp.matches("(0[1-9]|1[0-2])/[0-9]{2}")) {
+                showError("Expiry must be in MM/YY format");
+                return false;
+            }
+            int month = Integer.parseInt(exp.substring(0,2));
+            int year = Integer.parseInt(exp.substring(3,5)) + 2000; // assume 20xx
+            LocalDate now = LocalDate.now();
+            LocalDate endOfMonth = LocalDate.of(year, month, 1).withDayOfMonth(1);
+            if (year < now.getYear() || (year == now.getYear() && month < now.getMonthValue())) {
+                showError("Card is expired");
+                return false;
+            }
+            String ccv = ccvField.getText() == null ? "" : ccvField.getText().trim();
+            if (!ccv.matches("\\d{3,4}")) {
+                showError("Please enter a valid 3-4 digit CCV");
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -359,6 +419,10 @@ public class CheckoutController implements Initializable {
         // Set order priority
         request.setOrderPriority(orderPriorityComboBox.getValue());
 
+        boolean needsPayment = (currentUser == null) || !currentUser.isSubscriptionActive();
+        if (needsPayment && creditCardNumberField != null) {
+            request.setCreditCardNumber(creditCardNumberField.getText().trim());
+        }
         return request;
     }
 

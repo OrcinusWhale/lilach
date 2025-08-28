@@ -155,6 +155,28 @@
                </children>
             </VBox>
             
+            <!-- Credit Card Section (visible only if no subscription) -->
+            <VBox fx:id="creditCardSection" spacing="10.0">
+               <children>
+                  <Label text="Payment Information" style="-fx-font-weight: bold; -fx-font-size: 16px;" />
+                  <GridPane hgap="10.0" vgap="10.0">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="100.0" />
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="200.0" />
+                     </columnConstraints>
+                     <children>
+                        <Label text="Card Number:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                        <TextField fx:id="creditCardNumberField" promptText="16-digit number" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                        <Label text="Expiry (MM/YY):" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                        <TextField fx:id="expirationDateField" promptText="MM/YY" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label text="CCV:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                        <TextField fx:id="ccvField" promptText="3-4 digits" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                     </children>
+                  </GridPane>
+                  <Label fx:id="creditCardHintLabel" text="Enter payment details to proceed (required without subscription)." style="-fx-text-fill: #666; -fx-font-size: 12px;" wrapText="true" />
+               </children>
+            </VBox>
+
             <!-- Action Buttons -->
             <HBox spacing="20.0" alignment="CENTER">
                <children>

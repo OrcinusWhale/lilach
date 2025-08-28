@@ -268,6 +268,12 @@ public class OrderService {
                 return new OrderResponse(false, "User is not authorized to place orders. Please setup subscription first.");
             }
 
+            // If user has no active subscription and provided a credit card, store it
+            if (!user.isSubscriptionActive() && request.getCreditCardNumber() != null && !request.getCreditCardNumber().trim().isEmpty()) {
+                user.setCreditCard(request.getCreditCardNumber().trim());
+                session.saveOrUpdate(user);
+            }
+
             // Get store
             Store store = session.get(Store.class, request.getStoreId());
             if (store == null) {
