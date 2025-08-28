@@ -435,6 +435,9 @@ public class CheckoutController implements Initializable {
             if (response.isSuccess()) {
                 showSuccess("Order placed successfully! Order ID: " + response.getOrderId());
                 
+                // Clear the local cart reference since server has cleared the cart
+                currentCart = null;
+                
                 // Navigate back to catalogue after successful order
                 try {
                     EventBus.getDefault().unregister(this);
