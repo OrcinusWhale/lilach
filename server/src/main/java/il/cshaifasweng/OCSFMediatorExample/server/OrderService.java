@@ -358,6 +358,10 @@ public class OrderService {
             session.save(order);
 
             // Clear cart after successful order creation
+            // Delete all cart items from database first
+            for (CartItem cartItem : cart.getCartItems()) {
+                session.delete(cartItem);
+            }
             cart.clearCart();
             session.saveOrUpdate(cart);
 
